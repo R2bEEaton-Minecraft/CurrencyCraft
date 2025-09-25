@@ -1,0 +1,18 @@
+{
+    "item.currencycraft.one_cent_coin": "One Cent Coin",
+    "item.currencycraft.two_cent_coin": "Two Cent Coin",
+    "item.currencycraft.five_cent_coin": "Five Cent Coin",
+    "item.currencycraft.ten_cent_coin": "Ten Cent Coin",
+    "item.currencycraft.twenty_cent_coin": "Twenty Cent Coin",
+    "item.currencycraft.fifty_cent_coin": "Fifty Cent Coin",
+    "item.currencycraft.one_euro_coin": "One Euro Coin",
+    "item.currencycraft.two_euro_coin": "Two Euro Coin",
+    "item.currencycraft.five_euro_note": "Five Euro Note",
+    "item.currencycraft.ten_euro_note": "Ten Euro Note",
+    "item.currencycraft.twenty_euro_note": "Twenty Euro Note",
+    "item.currencycraft.fifty_euro_note": "Fifty Euro Note",
+    "item.currencycraft.one_hundred_euro_note": "One Hundred Euro Note",
+    "item.currencycraft.two_hundred_euro_note": "Two Hundred Euro Note",
+    "item.currencycraft.five_hundred_euro_note": "Five Hundred Euro Note",
+    "itemGroup.currencycraft.currencycraft_tab": "CurrencyCraft"
+}

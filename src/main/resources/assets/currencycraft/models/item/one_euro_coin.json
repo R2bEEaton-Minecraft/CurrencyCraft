@@ -1,0 +1,6 @@
+{
+    "parent": "currencycraft:item/default",
+    "textures": {
+        "layer0": "currencycraft:item/one_euro_coin"
+    }
+}
