@@ -14,5 +14,7 @@
     "item.currencycraft.one_hundred_euro_note": "One Hundred Euro Note",
     "item.currencycraft.two_hundred_euro_note": "Two Hundred Euro Note",
     "item.currencycraft.five_hundred_euro_note": "Five Hundred Euro Note",
+    "item.currencycraft.debit_card": "Debit Card",
+    "block.currencycraft.atm": "ATM",
     "itemGroup.currencycraft.currencycraft_tab": "CurrencyCraft"
 }

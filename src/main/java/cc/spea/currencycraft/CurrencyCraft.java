@@ -1,6 +1,8 @@
 package cc.spea.currencycraft;
 
 import com.mojang.logging.LogUtils;
+
+import cc.spea.currencycraft.blocks.ATMBlock;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.food.FoodProperties;
@@ -43,10 +45,8 @@ public class CurrencyCraft
     // Create a Deferred Register to hold CreativeModeTabs which will all be registered under the "examplemod" namespace
     public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MODID);
 
-    // Creates a new Block with the id "examplemod:example_block", combining the namespace and path
-    public static final RegistryObject<Block> EXAMPLE_BLOCK = BLOCKS.register("example_block", () -> new Block(BlockBehaviour.Properties.of().mapColor(MapColor.STONE)));
-    // Creates a new BlockItem with the id "examplemod:example_block", combining the namespace and path
-    public static final RegistryObject<Item> EXAMPLE_BLOCK_ITEM = ITEMS.register("example_block", () -> new BlockItem(EXAMPLE_BLOCK.get(), new Item.Properties()));
+    public static final RegistryObject<Block> ATM_BLOCK = BLOCKS.register("atm", () -> new ATMBlock(BlockBehaviour.Properties.of().mapColor(MapColor.STONE)));
+    public static final RegistryObject<Item> ATM_BLOCK_ITEM = ITEMS.register("atm", () -> new BlockItem(ATM_BLOCK.get(), new Item.Properties()));
 
     // Helper method to register items
     private static RegistryObject<Item> registerItem(String name) {
@@ -70,6 +70,7 @@ public class CurrencyCraft
         "one_hundred_euro_note",
         "two_hundred_euro_note",
         "five_hundred_euro_note",
+        "debit_card"
     };
 
     // Map to hold RegistryObjects for currency items
@@ -78,6 +79,7 @@ public class CurrencyCraft
         for (String name : CURRENCY_ITEM_NAMES) {
             CURRENCY_ITEMS.put(name, registerItem(name));
         }
+        CURRENCY_ITEMS.put("atm", ATM_BLOCK_ITEM);
     }
 
     // Example: Access individual items
@@ -90,6 +92,7 @@ public class CurrencyCraft
     public static final RegistryObject<Item> ONE_EURO_COIN = CURRENCY_ITEMS.get("one_euro_coin");
     public static final RegistryObject<Item> TWO_EURO_COIN = CURRENCY_ITEMS.get("two_euro_coin");
     public static final RegistryObject<Item> FIVE_EURO_NOTE = CURRENCY_ITEMS.get("five_euro_note");
+    public static final RegistryObject<Item> DEBIT_CARD = CURRENCY_ITEMS.get("debit_card");
 
     // Creates a creative tab for the currency items
     public static final RegistryObject<CreativeModeTab> CURRENCYCRAFT_TAB = CREATIVE_MODE_TABS.register("currencycraft_tab", () -> CreativeModeTab.builder()
@@ -119,7 +122,7 @@ public class CurrencyCraft
         MinecraftForge.EVENT_BUS.register(this);
 
         // Register the item to a creative tab
-        modEventBus.addListener(this::addCreative);
+        // modEventBus.addListener(this::addCreative);
 
         // Register our mod's ForgeConfigSpec so that Forge can create and load the config file for us
         context.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
@@ -138,12 +141,6 @@ public class CurrencyCraft
         Config.items.forEach((item) -> LOGGER.info("ITEM >> {}", item.toString()));
     }
 
-    // Add the example block item to the building blocks tab
-    private void addCreative(BuildCreativeModeTabContentsEvent event)
-    {
-        if (event.getTabKey() == CreativeModeTabs.BUILDING_BLOCKS)
-            event.accept(EXAMPLE_BLOCK_ITEM);
-    }
 
     // You can use SubscribeEvent and let the Event Bus discover methods to call
     @SubscribeEvent

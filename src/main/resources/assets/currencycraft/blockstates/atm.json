@@ -1,0 +1,36 @@
+{
+    "variants": {
+        "half=upper,facing=north": {
+            "model": "currencycraft:block/atm_top",
+            "y": 0
+        },
+        "half=upper,facing=south": {
+            "model": "currencycraft:block/atm_top",
+            "y": 180
+        },
+        "half=upper,facing=west": {
+            "model": "currencycraft:block/atm_top",
+            "y": 270
+        },
+        "half=upper,facing=east": {
+            "model": "currencycraft:block/atm_top",
+            "y": 90
+        },
+        "half=lower,facing=north": {
+            "model": "currencycraft:block/atm_bottom",
+            "y": 0
+        },
+        "half=lower,facing=south": {
+            "model": "currencycraft:block/atm_bottom",
+            "y": 180
+        },
+        "half=lower,facing=west": {
+            "model": "currencycraft:block/atm_bottom",
+            "y": 270
+        },
+        "half=lower,facing=east": {
+            "model": "currencycraft:block/atm_bottom",
+            "y": 90
+        }
+    }
+}
