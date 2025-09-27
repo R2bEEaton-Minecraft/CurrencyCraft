@@ -3,13 +3,17 @@ package cc.spea.currencycraft;
 import com.mojang.logging.LogUtils;
 
 import cc.spea.currencycraft.blocks.ATMBlock;
+import cc.spea.currencycraft.items.DebitCardItem;
 import net.minecraft.client.Minecraft;
+import net.minecraft.commands.Commands;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -47,6 +51,7 @@ public class CurrencyCraft
 
     public static final RegistryObject<Block> ATM_BLOCK = BLOCKS.register("atm", () -> new ATMBlock(BlockBehaviour.Properties.of().mapColor(MapColor.STONE)));
     public static final RegistryObject<Item> ATM_BLOCK_ITEM = ITEMS.register("atm", () -> new BlockItem(ATM_BLOCK.get(), new Item.Properties()));
+    public static final RegistryObject<Item> DEBIT_CARD = ITEMS.register("debit_card", () -> new DebitCardItem(new Item.Properties()));
 
     // Helper method to register items
     private static RegistryObject<Item> registerItem(String name) {
@@ -70,7 +75,6 @@ public class CurrencyCraft
         "one_hundred_euro_note",
         "two_hundred_euro_note",
         "five_hundred_euro_note",
-        "debit_card"
     };
 
     // Map to hold RegistryObjects for currency items
@@ -80,6 +84,7 @@ public class CurrencyCraft
             CURRENCY_ITEMS.put(name, registerItem(name));
         }
         CURRENCY_ITEMS.put("atm", ATM_BLOCK_ITEM);
+        CURRENCY_ITEMS.put("debit_card", DEBIT_CARD);
     }
 
     // Example: Access individual items
@@ -92,7 +97,6 @@ public class CurrencyCraft
     public static final RegistryObject<Item> ONE_EURO_COIN = CURRENCY_ITEMS.get("one_euro_coin");
     public static final RegistryObject<Item> TWO_EURO_COIN = CURRENCY_ITEMS.get("two_euro_coin");
     public static final RegistryObject<Item> FIVE_EURO_NOTE = CURRENCY_ITEMS.get("five_euro_note");
-    public static final RegistryObject<Item> DEBIT_CARD = CURRENCY_ITEMS.get("debit_card");
 
     // Creates a creative tab for the currency items
     public static final RegistryObject<CreativeModeTab> CURRENCYCRAFT_TAB = CREATIVE_MODE_TABS.register("currencycraft_tab", () -> CreativeModeTab.builder()
