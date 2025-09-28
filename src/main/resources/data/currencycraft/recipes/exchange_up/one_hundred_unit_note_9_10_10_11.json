@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "currencycraft:one_hundred_unit_note_exchange_up",
+  "ingredients": [
+    { "item": "currencycraft:ten_unit_note" },
+    { "item": "currencycraft:twenty_unit_note" },
+    { "item": "currencycraft:twenty_unit_note" },
+    { "item": "currencycraft:fifty_unit_note" }
+  ],
+  "result": {
+    "item": "currencycraft:one_hundred_unit_note"
+  }
+}

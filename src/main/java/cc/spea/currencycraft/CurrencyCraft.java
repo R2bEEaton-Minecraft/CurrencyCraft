@@ -66,15 +66,15 @@ public class CurrencyCraft
         "ten_cent_coin",
         "twenty_cent_coin",
         "fifty_cent_coin",
-        "one_euro_coin",
-        "two_euro_coin",
-        "five_euro_note",
-        "ten_euro_note",
-        "twenty_euro_note",
-        "fifty_euro_note",
-        "one_hundred_euro_note",
-        "two_hundred_euro_note",
-        "five_hundred_euro_note",
+        "one_unit_coin",
+        "two_unit_coin",
+        "five_unit_note",
+        "ten_unit_note",
+        "twenty_unit_note",
+        "fifty_unit_note",
+        "one_hundred_unit_note",
+        "two_hundred_unit_note",
+        "five_hundred_unit_note",
     };
 
     // Map to hold RegistryObjects for currency items
@@ -94,9 +94,9 @@ public class CurrencyCraft
     public static final RegistryObject<Item> TEN_CENT_COIN = CURRENCY_ITEMS.get("ten_cent_coin");
     public static final RegistryObject<Item> TWENTY_CENT_COIN = CURRENCY_ITEMS.get("twenty_cent_coin");
     public static final RegistryObject<Item> FIFTY_CENT_COIN = CURRENCY_ITEMS.get("fifty_cent_coin");
-    public static final RegistryObject<Item> ONE_EURO_COIN = CURRENCY_ITEMS.get("one_euro_coin");
-    public static final RegistryObject<Item> TWO_EURO_COIN = CURRENCY_ITEMS.get("two_euro_coin");
-    public static final RegistryObject<Item> FIVE_EURO_NOTE = CURRENCY_ITEMS.get("five_euro_note");
+    public static final RegistryObject<Item> ONE_EURO_COIN = CURRENCY_ITEMS.get("one_unit_coin");
+    public static final RegistryObject<Item> TWO_EURO_COIN = CURRENCY_ITEMS.get("two_unit_coin");
+    public static final RegistryObject<Item> FIVE_EURO_NOTE = CURRENCY_ITEMS.get("five_unit_note");
 
     // Creates a creative tab for the currency items
     public static final RegistryObject<CreativeModeTab> CURRENCYCRAFT_TAB = CREATIVE_MODE_TABS.register("currencycraft_tab", () -> CreativeModeTab.builder()

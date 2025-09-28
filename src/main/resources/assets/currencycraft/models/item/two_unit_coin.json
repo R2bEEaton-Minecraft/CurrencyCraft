@@ -1,0 +1,6 @@
+{
+    "parent": "currencycraft:item/default",
+    "textures": {
+        "layer0": "currencycraft:item/two_unit_coin"
+    }
+}

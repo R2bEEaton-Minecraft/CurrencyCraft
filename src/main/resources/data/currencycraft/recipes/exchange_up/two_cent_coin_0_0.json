@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "currencycraft:two_cent_coin_exchange_up",
+  "ingredients": [
+    { "item": "currencycraft:one_cent_coin" },
+    { "item": "currencycraft:one_cent_coin" }
+  ],
+  "result": {
+    "item": "currencycraft:two_cent_coin"
+  }
+}

@@ -1,6 +1,0 @@
-{
-    "parent": "currencycraft:item/default",
-    "textures": {
-        "layer0": "currencycraft:item/five_euro_note"
-    }
-}

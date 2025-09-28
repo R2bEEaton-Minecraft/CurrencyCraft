@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "currencycraft:two_unit_coin_exchange_up",
+  "ingredients": [
+    { "item": "currencycraft:ten_cent_coin" },
+    { "item": "currencycraft:twenty_cent_coin" },
+    { "item": "currencycraft:twenty_cent_coin" },
+    { "item": "currencycraft:fifty_cent_coin" },
+    { "item": "currencycraft:fifty_cent_coin" },
+    { "item": "currencycraft:fifty_cent_coin" }
+  ],
+  "result": {
+    "item": "currencycraft:two_unit_coin"
+  }
+}
