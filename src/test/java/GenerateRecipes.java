@@ -27,11 +27,11 @@ public class GenerateRecipes {
     };
 
     public static void main(String[] args) {
-        // for (int i = 0; i < denominations.length; i++) {
-        //     System.out.println(denomination_names[i]);
-        //     List<Integer> combination = new ArrayList<>();
-        //     generate(denominations[i], denominations[i], 0, combination, 0);
-        // }
+        for (int i = 0; i < denominations.length; i++) {
+            System.out.println(denomination_names[i]);
+            List<Integer> combination = new ArrayList<>();
+            generate(denominations[i], denominations[i], 0, combination, 0);
+        }
 
         for (int i = denominations.length - 1; i >= 0; i--) {
             for (int j = i - 1; j >= 0; j--) {
