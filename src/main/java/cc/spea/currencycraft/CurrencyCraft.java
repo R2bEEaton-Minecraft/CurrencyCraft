@@ -3,24 +3,20 @@ package cc.spea.currencycraft;
 import com.mojang.logging.LogUtils;
 
 import cc.spea.currencycraft.blocks.ATMBlock;
+import cc.spea.currencycraft.blocks.CashRegisterBlock;
 import cc.spea.currencycraft.items.DebitCardItem;
 import net.minecraft.client.Minecraft;
-import net.minecraft.commands.Commands;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -49,8 +45,12 @@ public class CurrencyCraft
     // Create a Deferred Register to hold CreativeModeTabs which will all be registered under the "examplemod" namespace
     public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MODID);
 
-    public static final RegistryObject<Block> ATM_BLOCK = BLOCKS.register("atm", () -> new ATMBlock(BlockBehaviour.Properties.of().mapColor(MapColor.STONE)));
+    public static final RegistryObject<Block> ATM_BLOCK = BLOCKS.register("atm", () -> new ATMBlock(BlockBehaviour.Properties.of().mapColor(MapColor.STONE).noOcclusion()));
     public static final RegistryObject<Item> ATM_BLOCK_ITEM = ITEMS.register("atm", () -> new BlockItem(ATM_BLOCK.get(), new Item.Properties().stacksTo(1)));
+
+    public static final RegistryObject<Block> CASH_REGISTER_BLOCK = BLOCKS.register("cash_register", () -> new CashRegisterBlock(BlockBehaviour.Properties.of().mapColor(MapColor.STONE)));
+    public static final RegistryObject<Item> CASH_REGISTER_BLOCK_ITEM = ITEMS.register("cash_register", () -> new BlockItem(CASH_REGISTER_BLOCK.get(), new Item.Properties().stacksTo(1)));
+    
     public static final RegistryObject<Item> DEBIT_CARD = ITEMS.register("debit_card", () -> new DebitCardItem(new Item.Properties().stacksTo(1)));
 
     // Helper method to register items
@@ -84,6 +84,7 @@ public class CurrencyCraft
             CURRENCY_ITEMS.put(name, registerItem(name));
         }
         CURRENCY_ITEMS.put("atm", ATM_BLOCK_ITEM);
+        CURRENCY_ITEMS.put("cash_register", CASH_REGISTER_BLOCK_ITEM);
         CURRENCY_ITEMS.put("debit_card", DEBIT_CARD);
     }
 
