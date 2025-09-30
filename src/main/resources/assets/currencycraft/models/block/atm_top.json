@@ -6,6 +6,7 @@
 		"3": "currencycraft:block/atm_top",
 		"particle": "currencycraft:block/atm_top"
 	},
+	"render_type": "minecraft:cutout",
 	"elements": [
 		{
 			"from": [0, 0, 0],
