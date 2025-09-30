@@ -18,6 +18,7 @@
     "item.currencycraft.wallet": "Wallet",
     "block.currencycraft.atm": "ATM",
     "block.currencycraft.cash_register": "Cash Register",
+    "block.currencycraft.vending_machine": "Vending Machine",
     "itemGroup.currencycraft.currencycraft_tab": "CurrencyCraft",
     "text.debit_card.owner": "Owner: {0}",
     "text.debit_card.unassigned": "Unassigned"

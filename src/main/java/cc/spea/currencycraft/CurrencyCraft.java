@@ -4,6 +4,7 @@ import com.mojang.logging.LogUtils;
 
 import cc.spea.currencycraft.blocks.ATMBlock;
 import cc.spea.currencycraft.blocks.CashRegisterBlock;
+import cc.spea.currencycraft.blocks.VendingMachineBlock;
 import cc.spea.currencycraft.items.DebitCardItem;
 import cc.spea.currencycraft.items.WalletItem;
 import net.minecraft.client.Minecraft;
@@ -51,6 +52,9 @@ public class CurrencyCraft
     public static final RegistryObject<Block> ATM_BLOCK = BLOCKS.register("atm", () -> new ATMBlock(BlockBehaviour.Properties.of().mapColor(MapColor.STONE).noOcclusion()));
     public static final RegistryObject<Item> ATM_BLOCK_ITEM = ITEMS.register("atm", () -> new BlockItem(ATM_BLOCK.get(), new Item.Properties().stacksTo(1)));
 
+    public static final RegistryObject<Block> VENDING_MACHINE_BLOCK = BLOCKS.register("vending_machine", () -> new VendingMachineBlock(BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_BLACK).noOcclusion()));
+    public static final RegistryObject<Item> VENDING_MACHINE_BLOCK_ITME = ITEMS.register("vending_machine", () -> new BlockItem(VENDING_MACHINE_BLOCK.get(), new Item.Properties().stacksTo(1)));
+
     public static final RegistryObject<Block> CASH_REGISTER_BLOCK = BLOCKS.register("cash_register", () -> new CashRegisterBlock(BlockBehaviour.Properties.of().mapColor(MapColor.STONE)));
     public static final RegistryObject<Item> CASH_REGISTER_BLOCK_ITEM = ITEMS.register("cash_register", () -> new BlockItem(CASH_REGISTER_BLOCK.get(), new Item.Properties().stacksTo(1)));
     
@@ -90,6 +94,7 @@ public class CurrencyCraft
         }
         CURRENCY_ITEMS.put("atm", ATM_BLOCK_ITEM);
         CURRENCY_ITEMS.put("cash_register", CASH_REGISTER_BLOCK_ITEM);
+        CURRENCY_ITEMS.put("vending_machine", VENDING_MACHINE_BLOCK_ITME);
         CURRENCY_ITEMS.put("debit_card", DEBIT_CARD);
         CURRENCY_ITEMS.put("wallet", WALLET);
     }
