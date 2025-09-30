@@ -1,0 +1,40 @@
+package cc.spea.currencycraft.gui;
+
+import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.gui.screens.inventory.MenuAccess;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.ChestMenu;
+
+public class VendingMachineScreen extends AbstractContainerScreen<VendingMachineMenu> implements MenuAccess<VendingMachineMenu> {
+    private static final ResourceLocation TEXTURE =
+            new ResourceLocation("currencycraft", "textures/gui/vending_machine.png");
+
+    public VendingMachineScreen(VendingMachineMenu menu, Inventory playerInv, Component title) {
+        super(menu, playerInv, title);
+        this.imageWidth = 176;  // typical vanilla container width
+        this.imageHeight = 166; // typical vanilla container height
+    }
+
+    @Override
+    protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
+        // Bind the GUI texture
+        RenderSystem.setShaderColor(1f, 1f, 1f, 1f); // full white tint
+        guiGraphics.blit(TEXTURE, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight);
+    }
+
+    @Override
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        // Render the dark background behind the GUI
+        this.renderBg(guiGraphics, partialTick, mouseX, mouseY);
+
+        // Draw the container and slots
+        super.render(guiGraphics, mouseX, mouseY, partialTick);
+
+        // Render tooltips (like hovered item stacks)
+        this.renderTooltip(guiGraphics, mouseX, mouseY);
+    }
+}

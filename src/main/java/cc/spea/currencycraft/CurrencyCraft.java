@@ -5,10 +5,17 @@ import com.mojang.logging.LogUtils;
 import cc.spea.currencycraft.blocks.ATMBlock;
 import cc.spea.currencycraft.blocks.CashRegisterBlock;
 import cc.spea.currencycraft.blocks.VendingMachineBlock;
+import cc.spea.currencycraft.blocks.VendingMachineBlockEntity;
+import cc.spea.currencycraft.blocks.VendingMachineRenderer;
+import cc.spea.currencycraft.gui.VendingMachineMenu;
+import cc.spea.currencycraft.gui.VendingMachineScreen;
 import cc.spea.currencycraft.items.DebitCardItem;
 import cc.spea.currencycraft.items.WalletItem;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.MenuScreens;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
@@ -16,11 +23,15 @@ import net.minecraft.world.item.DyeableLeatherItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.client.event.RegisterColorHandlersEvent;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.extensions.IForgeMenuType;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -44,16 +55,33 @@ public class CurrencyCraft
     private static final Logger LOGGER = LogUtils.getLogger();
     // Create a Deferred Register to hold Blocks which will all be registered under the "examplemod" namespace
     public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, MODID);
+    
+    public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITY_TYPES = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, MODID);
     // Create a Deferred Register to hold Items which will all be registered under the "examplemod" namespace
     public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, MODID);
     // Create a Deferred Register to hold CreativeModeTabs which will all be registered under the "examplemod" namespace
     public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MODID);
 
+    public static final DeferredRegister<MenuType<?>> MENUS = DeferredRegister.create(ForgeRegistries.MENU_TYPES, MODID);
+    public static final RegistryObject<MenuType<VendingMachineMenu>> VENDING_MACHINE_MENU =
+    MENUS.register("vending_machine", 
+        () -> IForgeMenuType.create((windowId, inv, data) -> {
+            BlockPos pos = data.readBlockPos();
+            BlockEntity be = inv.player.level().getBlockEntity(pos);
+            if (be instanceof VendingMachineBlockEntity vm) {
+                return new VendingMachineMenu(windowId, inv, vm);
+            }
+            return null;
+        }));
+
+
     public static final RegistryObject<Block> ATM_BLOCK = BLOCKS.register("atm", () -> new ATMBlock(BlockBehaviour.Properties.of().mapColor(MapColor.STONE).noOcclusion()));
     public static final RegistryObject<Item> ATM_BLOCK_ITEM = ITEMS.register("atm", () -> new BlockItem(ATM_BLOCK.get(), new Item.Properties().stacksTo(1)));
 
     public static final RegistryObject<Block> VENDING_MACHINE_BLOCK = BLOCKS.register("vending_machine", () -> new VendingMachineBlock(BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_BLACK).noOcclusion()));
-    public static final RegistryObject<Item> VENDING_MACHINE_BLOCK_ITME = ITEMS.register("vending_machine", () -> new BlockItem(VENDING_MACHINE_BLOCK.get(), new Item.Properties().stacksTo(1)));
+    public static final RegistryObject<Item> VENDING_MACHINE_BLOCK_ITEM = ITEMS.register("vending_machine", () -> new BlockItem(VENDING_MACHINE_BLOCK.get(), new Item.Properties().stacksTo(1)));
+    public static final RegistryObject<BlockEntityType<VendingMachineBlockEntity>> VENDING_MACHINE_BLOCK_ENTITY = BLOCK_ENTITY_TYPES.register("vending_machine",
+            () -> BlockEntityType.Builder.of(VendingMachineBlockEntity::new, VENDING_MACHINE_BLOCK.get()).build(null));
 
     public static final RegistryObject<Block> CASH_REGISTER_BLOCK = BLOCKS.register("cash_register", () -> new CashRegisterBlock(BlockBehaviour.Properties.of().mapColor(MapColor.STONE)));
     public static final RegistryObject<Item> CASH_REGISTER_BLOCK_ITEM = ITEMS.register("cash_register", () -> new BlockItem(CASH_REGISTER_BLOCK.get(), new Item.Properties().stacksTo(1)));
@@ -94,7 +122,7 @@ public class CurrencyCraft
         }
         CURRENCY_ITEMS.put("atm", ATM_BLOCK_ITEM);
         CURRENCY_ITEMS.put("cash_register", CASH_REGISTER_BLOCK_ITEM);
-        CURRENCY_ITEMS.put("vending_machine", VENDING_MACHINE_BLOCK_ITME);
+        CURRENCY_ITEMS.put("vending_machine", VENDING_MACHINE_BLOCK_ITEM);
         CURRENCY_ITEMS.put("debit_card", DEBIT_CARD);
         CURRENCY_ITEMS.put("wallet", WALLET);
     }
@@ -133,6 +161,10 @@ public class CurrencyCraft
         ITEMS.register(modEventBus);
         // Register the Deferred Register to the mod event bus so tabs get registered
         CREATIVE_MODE_TABS.register(modEventBus);
+
+        BLOCK_ENTITY_TYPES.register(modEventBus);
+
+        MENUS.register(modEventBus);
 
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
@@ -176,6 +208,11 @@ public class CurrencyCraft
             // Some client setup code
             LOGGER.info("HELLO FROM CLIENT SETUP");
             LOGGER.info("MINECRAFT NAME >> {}", Minecraft.getInstance().getUser().getName());
+
+            event.enqueueWork(() -> {
+                MenuScreens.register(CurrencyCraft.VENDING_MACHINE_MENU.get(),
+                        VendingMachineScreen::new);
+            });
         }
 
         @SubscribeEvent
@@ -189,6 +226,12 @@ public class CurrencyCraft
                 },
                 WALLET.get()
             );
-    }
+        }
+
+        @SubscribeEvent
+        public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
+            event.registerBlockEntityRenderer(VENDING_MACHINE_BLOCK_ENTITY.get(),
+                    VendingMachineRenderer::new);
+        }
     }
 }
