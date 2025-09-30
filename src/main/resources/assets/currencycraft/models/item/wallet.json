@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "currencycraft:item/wallet",
+    "layer1": "currencycraft:item/wallet_overlay"
+  }
+}

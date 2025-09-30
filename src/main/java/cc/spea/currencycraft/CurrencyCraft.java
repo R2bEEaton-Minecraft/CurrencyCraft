@@ -5,17 +5,20 @@ import com.mojang.logging.LogUtils;
 import cc.spea.currencycraft.blocks.ATMBlock;
 import cc.spea.currencycraft.blocks.CashRegisterBlock;
 import cc.spea.currencycraft.items.DebitCardItem;
+import cc.spea.currencycraft.items.WalletItem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
+import net.minecraft.world.item.DyeableLeatherItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.RegisterColorHandlersEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -53,6 +56,8 @@ public class CurrencyCraft
     
     public static final RegistryObject<Item> DEBIT_CARD = ITEMS.register("debit_card", () -> new DebitCardItem(new Item.Properties().stacksTo(1)));
 
+    public static final RegistryObject<Item> WALLET = ITEMS.register("wallet", () -> new WalletItem(new Item.Properties().stacksTo(1)));
+
     // Helper method to register items
     private static RegistryObject<Item> registerItem(String name) {
         return ITEMS.register(name, () -> new Item(new Item.Properties()));
@@ -86,6 +91,7 @@ public class CurrencyCraft
         CURRENCY_ITEMS.put("atm", ATM_BLOCK_ITEM);
         CURRENCY_ITEMS.put("cash_register", CASH_REGISTER_BLOCK_ITEM);
         CURRENCY_ITEMS.put("debit_card", DEBIT_CARD);
+        CURRENCY_ITEMS.put("wallet", WALLET);
     }
 
     // Example: Access individual items
@@ -166,5 +172,18 @@ public class CurrencyCraft
             LOGGER.info("HELLO FROM CLIENT SETUP");
             LOGGER.info("MINECRAFT NAME >> {}", Minecraft.getInstance().getUser().getName());
         }
+
+        @SubscribeEvent
+        public static void onItemColorRegister(RegisterColorHandlersEvent.Item event) {
+            event.getItemColors().register(
+                (stack, tintIndex) -> {
+                    if (tintIndex == 0) {
+                        return ((DyeableLeatherItem) stack.getItem()).getColor(stack);
+                    }
+                    return 0xFFFFFF;
+                },
+                WALLET.get()
+            );
+    }
     }
 }
