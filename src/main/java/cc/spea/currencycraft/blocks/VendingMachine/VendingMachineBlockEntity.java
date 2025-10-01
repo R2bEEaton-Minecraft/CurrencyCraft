@@ -1,7 +1,7 @@
-package cc.spea.currencycraft.blocks;
+package cc.spea.currencycraft.blocks.VendingMachine;
 
 import cc.spea.currencycraft.CurrencyCraft;
-import cc.spea.currencycraft.gui.VendingMachineMenu;
+import cc.spea.currencycraft.gui.VendingMachine.VendingMachineRestockMenu;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
@@ -139,7 +139,7 @@ public class VendingMachineBlockEntity extends BaseContainerBlockEntity implemen
     }
 
     protected AbstractContainerMenu createMenu(int windowId, Inventory inventory) {
-        return new VendingMachineMenu(windowId, inventory, this);
+        return new VendingMachineRestockMenu(windowId, inventory, this);
     }
 
     @Override

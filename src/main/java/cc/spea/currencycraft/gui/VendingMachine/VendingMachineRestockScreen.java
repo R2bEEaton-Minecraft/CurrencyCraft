@@ -1,17 +1,18 @@
-package cc.spea.currencycraft.gui;
+package cc.spea.currencycraft.gui.VendingMachine;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 
-public class VendingMachineScreen extends AbstractContainerScreen<VendingMachineMenu> {
+public class VendingMachineRestockScreen extends AbstractContainerScreen<VendingMachineRestockMenu> {
     private static final ResourceLocation TEXTURE =
             new ResourceLocation("currencycraft", "textures/gui/vending_machine.png");
 
-    public VendingMachineScreen(VendingMachineMenu menu, Inventory playerInv, Component title) {
+    public VendingMachineRestockScreen(VendingMachineRestockMenu menu, Inventory playerInv, Component title) {
         super(menu, playerInv, title);
         this.imageWidth = 230;
         this.imageHeight = 204;

@@ -3,12 +3,12 @@ package cc.spea.currencycraft;
 import com.mojang.logging.LogUtils;
 
 import cc.spea.currencycraft.blocks.ATMBlock;
-import cc.spea.currencycraft.blocks.CashRegisterBlock;
-import cc.spea.currencycraft.blocks.VendingMachineBlock;
-import cc.spea.currencycraft.blocks.VendingMachineBlockEntity;
-import cc.spea.currencycraft.blocks.VendingMachineRenderer;
-import cc.spea.currencycraft.gui.VendingMachineMenu;
-import cc.spea.currencycraft.gui.VendingMachineScreen;
+import cc.spea.currencycraft.blocks.CashRegister.CashRegisterBlock;
+import cc.spea.currencycraft.blocks.VendingMachine.VendingMachineBlock;
+import cc.spea.currencycraft.blocks.VendingMachine.VendingMachineBlockEntity;
+import cc.spea.currencycraft.blocks.VendingMachine.VendingMachineRenderer;
+import cc.spea.currencycraft.gui.VendingMachine.VendingMachineRestockMenu;
+import cc.spea.currencycraft.gui.VendingMachine.VendingMachineRestockScreen;
 import cc.spea.currencycraft.items.DebitCardItem;
 import cc.spea.currencycraft.items.WalletItem;
 import net.minecraft.client.Minecraft;
@@ -67,13 +67,13 @@ public class CurrencyCraft
     public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MODID);
 
     public static final DeferredRegister<MenuType<?>> MENUS = DeferredRegister.create(ForgeRegistries.MENU_TYPES, MODID);
-    public static final RegistryObject<MenuType<VendingMachineMenu>> VENDING_MACHINE_MENU =
+    public static final RegistryObject<MenuType<VendingMachineRestockMenu>> VENDING_MACHINE_MENU =
     MENUS.register("vending_machine", 
         () -> IForgeMenuType.create((windowId, inv, data) -> {
             BlockPos pos = data.readBlockPos();
             BlockEntity be = inv.player.level().getBlockEntity(pos);
             if (be instanceof VendingMachineBlockEntity vm) {
-                return new VendingMachineMenu(windowId, inv, vm);
+                return new VendingMachineRestockMenu(windowId, inv, vm);
             }
             return null;
         }));
@@ -231,7 +231,7 @@ public class CurrencyCraft
 
             event.enqueueWork(() -> {
                 MenuScreens.register(CurrencyCraft.VENDING_MACHINE_MENU.get(),
-                        VendingMachineScreen::new);
+                        VendingMachineRestockScreen::new);
             });
         }
 

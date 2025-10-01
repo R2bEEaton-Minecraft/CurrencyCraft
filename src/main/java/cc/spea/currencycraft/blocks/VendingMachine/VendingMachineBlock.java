@@ -1,10 +1,11 @@
-package cc.spea.currencycraft.blocks;
+package cc.spea.currencycraft.blocks.VendingMachine;
 
 import java.util.List;
 
 import javax.annotation.Nullable;
 
 import cc.spea.currencycraft.CurrencyCraft;
+import cc.spea.currencycraft.blocks.HorizontalEntityBlockBase;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;

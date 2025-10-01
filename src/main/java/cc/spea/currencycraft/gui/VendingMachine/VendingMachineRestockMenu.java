@@ -1,4 +1,4 @@
-package cc.spea.currencycraft.gui;
+package cc.spea.currencycraft.gui.VendingMachine;
 
 import cc.spea.currencycraft.CurrencyCraft;
 import net.minecraft.world.Container;
@@ -8,11 +8,11 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
-public class VendingMachineMenu extends AbstractContainerMenu {
+public class VendingMachineRestockMenu extends AbstractContainerMenu {
     private final Container container;
     private final int productSlots = 12;
 
-    public VendingMachineMenu(int windowId, Inventory playerInv, Container container) {
+    public VendingMachineRestockMenu(int windowId, Inventory playerInv, Container container) {
         super(CurrencyCraft.VENDING_MACHINE_MENU.get(), windowId);
         this.container = container;
 
