@@ -27,6 +27,13 @@ public class VendingMachineScreen extends AbstractContainerScreen<VendingMachine
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        // Render the dark background behind the GUI
+        this.renderBackground(guiGraphics);
+
+        // Draw the container and slots
         super.render(guiGraphics, mouseX, mouseY, partialTick);
+
+        // Render tooltips (like hovered item stacks)
+        this.renderTooltip(guiGraphics, mouseX, mouseY);
     }
 }
