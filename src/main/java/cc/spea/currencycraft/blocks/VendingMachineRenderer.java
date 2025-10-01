@@ -8,7 +8,6 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.items.ItemStackHandler;
 
 public class VendingMachineRenderer implements BlockEntityRenderer<VendingMachineBlockEntity> {
 
@@ -22,15 +21,14 @@ public class VendingMachineRenderer implements BlockEntityRenderer<VendingMachin
                        MultiBufferSource buffer, int combinedLight, int combinedOverlay) {
 
         if (be == null) return;
-        ItemStackHandler inv = be.getInventory();
         ItemRenderer itemRenderer = Minecraft.getInstance().getItemRenderer();
 
         // Get block facing direction
         var state = be.getBlockState();
         var facing = state.hasProperty(VendingMachineBlock.FACING) ? state.getValue(VendingMachineBlock.FACING) : null;
 
-        for (int i = 0; i < inv.getSlots(); i++) {
-            ItemStack stack = inv.getStackInSlot(i);
+        for (int i = 0; i < be.getContainerSize(); i++) {
+            ItemStack stack = be.getItem(i);
             if (stack.isEmpty()) continue;
 
             poseStack.pushPose();

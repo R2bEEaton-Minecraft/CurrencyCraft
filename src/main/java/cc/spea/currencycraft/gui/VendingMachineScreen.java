@@ -7,7 +7,6 @@ import net.minecraft.client.gui.screens.inventory.MenuAccess;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.inventory.ChestMenu;
 
 public class VendingMachineScreen extends AbstractContainerScreen<VendingMachineMenu> implements MenuAccess<VendingMachineMenu> {
     private static final ResourceLocation TEXTURE =

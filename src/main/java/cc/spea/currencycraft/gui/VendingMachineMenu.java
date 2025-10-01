@@ -1,27 +1,41 @@
 package cc.spea.currencycraft.gui;
 
 import cc.spea.currencycraft.CurrencyCraft;
-import cc.spea.currencycraft.blocks.VendingMachineBlockEntity;
+import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.items.ItemStackHandler;
-import net.minecraftforge.items.SlotItemHandler;
 
 public class VendingMachineMenu extends AbstractContainerMenu {
-    private final ContainerLevelAccess access;
+    private final Container container;
 
-    public VendingMachineMenu(int windowId, Inventory playerInv, VendingMachineBlockEntity be) {
+    public VendingMachineMenu(int windowId, Inventory playerInv, Container container) {
         super(CurrencyCraft.VENDING_MACHINE_MENU.get(), windowId);
-        this.access = ContainerLevelAccess.create(be.getLevel(), be.getBlockPos());
+        this.container = container;
 
-        // Our vending machine slots (12)
-        ItemStackHandler handler = be.getInventory();
-        for (int i = 0; i < handler.getSlots(); i++) {
-            this.addSlot(new SlotItemHandler(handler, i, 8 + (i % 3) * 18, 18 + (i / 3) * 18));
+        for (int i = 0; i < this.container.getContainerSize(); i++) {
+            this.addSlot(new Slot(container, i, 8 + (i % 3) * 18, 18 + (i / 3) * 18) {
+                @Override
+                    public boolean mayPlace(ItemStack stack) {
+                        // We are duplicating the logic from the BlockEntity here.
+                        // This is necessary for the client-side visual feedback.
+                        
+                        // If this is the payment slot (index 0)
+                        if (this.getSlotIndex() >= 12) {
+                            // Prevent NullPointerException if the stack is null or empty
+                            if (stack == null || stack.isEmpty()) {
+                                return false;
+                            }
+                            
+                            // Check if the item from the stack exists as a value in our currency map.
+                            return CurrencyCraft.CURRENCY_ITEMS.values().stream()
+                                .anyMatch(registryObject -> registryObject.get() == stack.getItem());
+                        }
+                        return true;
+                }
+            });
         }
 
         // Player inventory slots
@@ -38,7 +52,7 @@ public class VendingMachineMenu extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(Player player) {
-        return stillValid(access, player, CurrencyCraft.VENDING_MACHINE_BLOCK.get());
+        return this.container.stillValid(player);
     }
 
     public ItemStack quickMoveStack(Player player, int slotIndex) {
