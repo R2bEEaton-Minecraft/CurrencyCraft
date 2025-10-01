@@ -13,7 +13,7 @@ public class VendingMachineRestockMenu extends AbstractContainerMenu {
     private final int productSlots = 12;
 
     public VendingMachineRestockMenu(int windowId, Inventory playerInv, Container container) {
-        super(CurrencyCraft.VENDING_MACHINE_MENU.get(), windowId);
+        super(CurrencyCraft.VENDING_MACHINE_RESTOCK_MENU.get(), windowId);
         this.container = container;
 
         // Product Slots

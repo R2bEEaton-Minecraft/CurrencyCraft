@@ -93,7 +93,7 @@ public class VendingMachineBlockEntity extends BaseContainerBlockEntity implemen
     }
 
     protected Component getDefaultName() {
-        return Component.translatable("gui.currencycraft.vending_machine");
+        return Component.translatable("block.currencycraft.vending_machine");
     }
 
     public void load(CompoundTag tag) {

@@ -22,5 +22,5 @@
     "itemGroup.currencycraft.currencycraft_tab": "CurrencyCraft",
     "text.debit_card.owner": "Owner: {0}",
     "text.debit_card.unassigned": "Unassigned",
-    "gui.currencycraft.vending_machine": "Vending Machine"
+    "gui.currencycraft.cash_register.total": "Total: %s"
 }
