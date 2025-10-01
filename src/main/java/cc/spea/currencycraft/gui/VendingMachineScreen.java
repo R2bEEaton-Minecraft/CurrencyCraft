@@ -14,8 +14,9 @@ public class VendingMachineScreen extends AbstractContainerScreen<VendingMachine
 
     public VendingMachineScreen(VendingMachineMenu menu, Inventory playerInv, Component title) {
         super(menu, playerInv, title);
-        this.imageWidth = 176;  // typical vanilla container width
-        this.imageHeight = 166; // typical vanilla container height
+        this.imageWidth = 176;
+        this.imageHeight = 114 + 4 * 18;
+        this.inventoryLabelY = this.imageHeight - 94;
     }
 
     @Override
@@ -28,7 +29,7 @@ public class VendingMachineScreen extends AbstractContainerScreen<VendingMachine
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         // Render the dark background behind the GUI
-        this.renderBg(guiGraphics, partialTick, mouseX, mouseY);
+        this.renderBackground(guiGraphics);
 
         // Draw the container and slots
         super.render(guiGraphics, mouseX, mouseY, partialTick);
