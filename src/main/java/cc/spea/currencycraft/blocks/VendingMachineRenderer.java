@@ -27,7 +27,7 @@ public class VendingMachineRenderer implements BlockEntityRenderer<VendingMachin
         var state = be.getBlockState();
         var facing = state.hasProperty(VendingMachineBlock.FACING) ? state.getValue(VendingMachineBlock.FACING) : null;
 
-        for (int i = 0; i < be.getContainerSize(); i++) {
+        for (int i = 0; i < be.getProductSlots(); i++) {
             ItemStack stack = be.getItem(i);
             if (stack.isEmpty()) continue;
 

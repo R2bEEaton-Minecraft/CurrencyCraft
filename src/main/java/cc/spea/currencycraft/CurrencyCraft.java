@@ -75,15 +75,15 @@ public class CurrencyCraft
         }));
 
 
-    public static final RegistryObject<Block> ATM_BLOCK = BLOCKS.register("atm", () -> new ATMBlock(BlockBehaviour.Properties.of().mapColor(MapColor.STONE).noOcclusion()));
+    public static final RegistryObject<Block> ATM_BLOCK = BLOCKS.register("atm", () -> new ATMBlock(BlockBehaviour.Properties.of().mapColor(MapColor.STONE).noOcclusion().strength(5.0f, 6.0f)));
     public static final RegistryObject<Item> ATM_BLOCK_ITEM = ITEMS.register("atm", () -> new BlockItem(ATM_BLOCK.get(), new Item.Properties().stacksTo(1)));
 
-    public static final RegistryObject<Block> VENDING_MACHINE_BLOCK = BLOCKS.register("vending_machine", () -> new VendingMachineBlock(BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_BLACK).noOcclusion()));
+    public static final RegistryObject<Block> VENDING_MACHINE_BLOCK = BLOCKS.register("vending_machine", () -> new VendingMachineBlock(BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_BLACK).noOcclusion().strength(50.0f, 1200.0f)));
     public static final RegistryObject<Item> VENDING_MACHINE_BLOCK_ITEM = ITEMS.register("vending_machine", () -> new BlockItem(VENDING_MACHINE_BLOCK.get(), new Item.Properties().stacksTo(1)));
     public static final RegistryObject<BlockEntityType<VendingMachineBlockEntity>> VENDING_MACHINE_BLOCK_ENTITY = BLOCK_ENTITY_TYPES.register("vending_machine",
             () -> BlockEntityType.Builder.of(VendingMachineBlockEntity::new, VENDING_MACHINE_BLOCK.get()).build(null));
 
-    public static final RegistryObject<Block> CASH_REGISTER_BLOCK = BLOCKS.register("cash_register", () -> new CashRegisterBlock(BlockBehaviour.Properties.of().mapColor(MapColor.STONE)));
+    public static final RegistryObject<Block> CASH_REGISTER_BLOCK = BLOCKS.register("cash_register", () -> new CashRegisterBlock(BlockBehaviour.Properties.of().mapColor(MapColor.STONE).strength(25.0f, 1200.0f)));
     public static final RegistryObject<Item> CASH_REGISTER_BLOCK_ITEM = ITEMS.register("cash_register", () -> new BlockItem(CASH_REGISTER_BLOCK.get(), new Item.Properties().stacksTo(1)));
     
     public static final RegistryObject<Item> DEBIT_CARD = ITEMS.register("debit_card", () -> new DebitCardItem(new Item.Properties().stacksTo(1)));
@@ -116,34 +116,28 @@ public class CurrencyCraft
 
     // Map to hold RegistryObjects for currency items
     public static final java.util.Map<String, RegistryObject<Item>> CURRENCY_ITEMS = new java.util.LinkedHashMap<>();
+    public static final java.util.Map<String, RegistryObject<Item>> CURRENCYCRAFT_ITEMS = new java.util.LinkedHashMap<>();
     static {
         for (String name : CURRENCY_ITEM_NAMES) {
-            CURRENCY_ITEMS.put(name, registerItem(name));
+            CURRENCYCRAFT_ITEMS.put(name, registerItem(name));
+            CURRENCY_ITEMS.put(name, CURRENCYCRAFT_ITEMS.get(name));
         }
-        CURRENCY_ITEMS.put("atm", ATM_BLOCK_ITEM);
-        CURRENCY_ITEMS.put("cash_register", CASH_REGISTER_BLOCK_ITEM);
-        CURRENCY_ITEMS.put("vending_machine", VENDING_MACHINE_BLOCK_ITEM);
-        CURRENCY_ITEMS.put("debit_card", DEBIT_CARD);
-        CURRENCY_ITEMS.put("wallet", WALLET);
+        CURRENCYCRAFT_ITEMS.put("atm", ATM_BLOCK_ITEM);
+        CURRENCYCRAFT_ITEMS.put("cash_register", CASH_REGISTER_BLOCK_ITEM);
+        CURRENCYCRAFT_ITEMS.put("vending_machine", VENDING_MACHINE_BLOCK_ITEM);
+        CURRENCYCRAFT_ITEMS.put("debit_card", DEBIT_CARD);
+        CURRENCYCRAFT_ITEMS.put("wallet", WALLET);
     }
 
     // Example: Access individual items
-    public static final RegistryObject<Item> ONE_CENT_COIN = CURRENCY_ITEMS.get("one_cent_coin");
-    public static final RegistryObject<Item> TWO_CENT_COIN = CURRENCY_ITEMS.get("two_cent_coin");
-    public static final RegistryObject<Item> FIVE_CENT_COIN = CURRENCY_ITEMS.get("five_cent_coin");
-    public static final RegistryObject<Item> TEN_CENT_COIN = CURRENCY_ITEMS.get("ten_cent_coin");
-    public static final RegistryObject<Item> TWENTY_CENT_COIN = CURRENCY_ITEMS.get("twenty_cent_coin");
-    public static final RegistryObject<Item> FIFTY_CENT_COIN = CURRENCY_ITEMS.get("fifty_cent_coin");
-    public static final RegistryObject<Item> ONE_EURO_COIN = CURRENCY_ITEMS.get("one_unit_coin");
-    public static final RegistryObject<Item> TWO_EURO_COIN = CURRENCY_ITEMS.get("two_unit_coin");
-    public static final RegistryObject<Item> FIVE_EURO_NOTE = CURRENCY_ITEMS.get("five_unit_note");
+    public static final RegistryObject<Item> FIVE_EURO_NOTE = CURRENCYCRAFT_ITEMS.get("five_unit_note");
 
     // Creates a creative tab for the currency items
     public static final RegistryObject<CreativeModeTab> CURRENCYCRAFT_TAB = CREATIVE_MODE_TABS.register("currencycraft_tab", () -> CreativeModeTab.builder()
             .withTabsBefore(CreativeModeTabs.COMBAT)
             .icon(() -> FIVE_EURO_NOTE.get().getDefaultInstance())
             .displayItems((parameters, output) -> {
-                for (RegistryObject<Item> item : CURRENCY_ITEMS.values()) {
+                for (RegistryObject<Item> item : CURRENCYCRAFT_ITEMS.values()) {
                     output.accept(item.get());
                 }
             }).build());
