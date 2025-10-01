@@ -24,4 +24,9 @@ public class VendingMachineScreen extends AbstractContainerScreen<VendingMachine
         RenderSystem.setShaderColor(1f, 1f, 1f, 1f); // full white tint
         guiGraphics.blit(TEXTURE, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight);
     }
+
+    @Override
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        super.render(guiGraphics, mouseX, mouseY, partialTick);
+    }
 }

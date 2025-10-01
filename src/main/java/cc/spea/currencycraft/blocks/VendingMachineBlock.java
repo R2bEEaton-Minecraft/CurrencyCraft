@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
+import cc.spea.currencycraft.CurrencyCraft;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -32,6 +33,8 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -67,17 +70,39 @@ public class VendingMachineBlock extends HorizontalEntityBlockBase {
 
     @Override
     public InteractionResult use(BlockState state, Level world, BlockPos pos,
-            Player player, InteractionHand hand, BlockHitResult hit) {
+                                 Player player, InteractionHand hand, BlockHitResult hit) {
         if (!world.isClientSide()) {
-            // Get the MenuProvider, which is the BlockEntity
-            MenuProvider menuProvider = this.getMenuProvider(state, world, pos);
+            BlockPos blockEntityPos = (state.getValue(HALF) == DoubleBlockHalf.LOWER) ? pos : pos.below();
+            BlockEntity blockEntity = world.getBlockEntity(blockEntityPos);
 
-            if (menuProvider != null && player instanceof ServerPlayer) {
-                // Use NetworkHooks to properly open the container screen on the client
-                // This handles all the networking packets for you.
-                // The third parameter is the position of the BlockEntity providing the menu.
-                BlockPos blockEntityPos = (state.getValue(HALF) == DoubleBlockHalf.LOWER) ? pos : pos.below();
-                NetworkHooks.openScreen((ServerPlayer) player, menuProvider, blockEntityPos);
+            if (blockEntity instanceof VendingMachineBlockEntity vendingMachine) {
+                ItemStack heldStack = player.getItemInHand(hand);
+
+                // --- NEW LOGIC ---
+                // Check if the item in hand is a currency item.
+                boolean isCurrency = CurrencyCraft.CURRENCY_ITEMS.values().stream()
+                        .anyMatch(ro -> ro.get() == heldStack.getItem());
+
+                if (isCurrency) {
+                    // Try to add the currency to the machine's internal inventory
+                    boolean success = vendingMachine.addCurrency(heldStack);
+                    if (success) {
+                        // If successful, the BlockEntity has already taken the stack,
+                        // so we just need to clear it from the player's hand.
+                        // The `addCurrency` method handles shrinking/clearing the passed stack reference.
+                        player.setItemInHand(hand, heldStack); // Update player's hand with the (now empty or smaller) stack
+                        player.sendSystemMessage(Component.literal("" + vendingMachine.calculateTotalCurrencyValueInCents()));
+                        return InteractionResult.CONSUME;
+                    }
+                    // If it fails (e.g., currency inventory is full), we do nothing and let the GUI open below.
+                }
+                // --- END NEW LOGIC ---
+                
+                // If not holding currency, or if currency deposit failed, open the screen.
+                MenuProvider menuProvider = (MenuProvider) vendingMachine;
+                if (player instanceof ServerPlayer serverPlayer) {
+                    NetworkHooks.openScreen(serverPlayer, menuProvider, blockEntityPos);
+                }
             }
         }
         return InteractionResult.SUCCESS;
@@ -176,14 +201,30 @@ public class VendingMachineBlock extends HorizontalEntityBlockBase {
 
     @Override
     public void onRemove(BlockState blockState, Level world, BlockPos blockPos, BlockState newBlockState,
-            boolean p_56238_) {
+                         boolean isMoving) {
+        // This condition prevents dropping items when the block state just changes (e.g. waterlogged).
+        // We only want to drop items when the block is actually replaced with a different one.
         if (!blockState.is(newBlockState.getBlock())) {
-            BlockEntity blockentity = world.getBlockEntity(blockPos);
-            if (blockentity instanceof VendingMachineBlockEntity) {
-                world.updateNeighbourForOutputSignal(blockPos, blockState.getBlock());
+            // --- NEW LOGIC ---
+            // We only care about the lower half, as that's where the BlockEntity is.
+            if (blockState.getValue(HALF) == DoubleBlockHalf.LOWER) {
+                BlockEntity blockEntity = world.getBlockEntity(blockPos);
+                if (blockEntity instanceof VendingMachineBlockEntity vendingMachine) {
+                    // Drop the main inventory (if you have separate logic for that)
+                    // Containers.dropContents(world, blockPos, vendingMachine.getItems()); // Example for main inventory
+                    
+                    // Drop the contents of the new currency inventory
+                    vendingMachine.dropCurrencyContents();
+                    
+                    // This updates comparators, which is good practice.
+                    world.updateNeighbourForOutputSignal(blockPos, blockState.getBlock());
+                }
             }
-
-            super.onRemove(blockState, world, blockPos, newBlockState, p_56238_);
+            // --- END NEW LOGIC ---
+            
+            // The existing onRemove logic is mostly for comparators, let's clean it up slightly
+            // and keep the super call. The above logic handles the main functionality.
+            super.onRemove(blockState, world, blockPos, newBlockState, isMoving);
         }
     }
 
@@ -270,5 +311,18 @@ public class VendingMachineBlock extends HorizontalEntityBlockBase {
             be.setChanged();
         }
         return be;
+    }
+
+    @Nullable
+    @Override
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
+        // We only want this to run on the server side.
+        if (level.isClientSide()) {
+            return null;
+        }
+
+        // Return our custom ticker function, but only if the BlockEntityType matches.
+        return createTickerHelper(type, CurrencyCraft.VENDING_MACHINE_BLOCK_ENTITY.get(),
+                (lvl, pos, st, be) -> be.tick(lvl, pos, st));
     }
 }

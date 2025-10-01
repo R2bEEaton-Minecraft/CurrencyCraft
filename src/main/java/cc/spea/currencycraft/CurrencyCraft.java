@@ -43,6 +43,10 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
+
+import java.util.HashMap;
+import java.util.Map;
+
 import org.slf4j.Logger;
 
 // The value here should match an entry in the META-INF/mods.toml file
@@ -74,6 +78,8 @@ public class CurrencyCraft
             return null;
         }));
 
+
+    public static final Map<Item, Long> CURRENCY_VALUES = new HashMap<>();
 
     public static final RegistryObject<Block> ATM_BLOCK = BLOCKS.register("atm", () -> new ATMBlock(BlockBehaviour.Properties.of().mapColor(MapColor.STONE).noOcclusion().strength(5.0f, 6.0f)));
     public static final RegistryObject<Item> ATM_BLOCK_ITEM = ITEMS.register("atm", () -> new BlockItem(ATM_BLOCK.get(), new Item.Properties().stacksTo(1)));
@@ -115,8 +121,8 @@ public class CurrencyCraft
     };
 
     // Map to hold RegistryObjects for currency items
-    public static final java.util.Map<String, RegistryObject<Item>> CURRENCY_ITEMS = new java.util.LinkedHashMap<>();
-    public static final java.util.Map<String, RegistryObject<Item>> CURRENCYCRAFT_ITEMS = new java.util.LinkedHashMap<>();
+    public static final Map<String, RegistryObject<Item>> CURRENCY_ITEMS = new java.util.LinkedHashMap<>();
+    public static final Map<String, RegistryObject<Item>> CURRENCYCRAFT_ITEMS = new java.util.LinkedHashMap<>();
     static {
         for (String name : CURRENCY_ITEM_NAMES) {
             CURRENCYCRAFT_ITEMS.put(name, registerItem(name));
@@ -170,6 +176,24 @@ public class CurrencyCraft
         context.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
     }
 
+    private static void registerCurrencyValues() {
+        CURRENCY_VALUES.put(CURRENCY_ITEMS.get("one_cent_coin").get(), 1L);
+        CURRENCY_VALUES.put(CURRENCY_ITEMS.get("two_cent_coin").get(), 2L);
+        CURRENCY_VALUES.put(CURRENCY_ITEMS.get("five_cent_coin").get(), 5L);
+        CURRENCY_VALUES.put(CURRENCY_ITEMS.get("ten_cent_coin").get(), 10L);
+        CURRENCY_VALUES.put(CURRENCY_ITEMS.get("twenty_cent_coin").get(), 20L);
+        CURRENCY_VALUES.put(CURRENCY_ITEMS.get("fifty_cent_coin").get(), 50L);
+        CURRENCY_VALUES.put(CURRENCY_ITEMS.get("one_unit_coin").get(), 100L);
+        CURRENCY_VALUES.put(CURRENCY_ITEMS.get("two_unit_coin").get(), 200L);
+        CURRENCY_VALUES.put(CURRENCY_ITEMS.get("five_unit_note").get(), 500L);
+        CURRENCY_VALUES.put(CURRENCY_ITEMS.get("ten_unit_note").get(), 1000L);
+        CURRENCY_VALUES.put(CURRENCY_ITEMS.get("twenty_unit_note").get(), 2000L);
+        CURRENCY_VALUES.put(CURRENCY_ITEMS.get("fifty_unit_note").get(), 5000L);
+        CURRENCY_VALUES.put(CURRENCY_ITEMS.get("one_hundred_unit_note").get(), 10000L);
+        CURRENCY_VALUES.put(CURRENCY_ITEMS.get("two_hundred_unit_note").get(), 20000L);
+        CURRENCY_VALUES.put(CURRENCY_ITEMS.get("five_hundred_unit_note").get(), 50000L);
+    }
+
     private void commonSetup(final FMLCommonSetupEvent event)
     {
         // Some common setup code
@@ -181,6 +205,8 @@ public class CurrencyCraft
         LOGGER.info(Config.magicNumberIntroduction + Config.magicNumber);
 
         Config.items.forEach((item) -> LOGGER.info("ITEM >> {}", item.toString()));
+
+        registerCurrencyValues();
     }
 
 

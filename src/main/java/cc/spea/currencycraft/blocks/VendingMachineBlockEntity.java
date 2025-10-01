@@ -6,21 +6,29 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.Containers;
 import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class VendingMachineBlockEntity extends BaseContainerBlockEntity implements WorldlyContainer {
     private NonNullList<ItemStack> items = NonNullList.withSize(getContainerSize(), ItemStack.EMPTY);
+    private NonNullList<ItemStack> currencyInventory = NonNullList.withSize(9, ItemStack.EMPTY);
+    private int ejectTimer = 0;
+    private static final int EJECT_DELAY_TICKS = 600;
+
     private final int productSlots = 12;
     private static final int totalSlots = 37;
 
@@ -88,15 +96,46 @@ public class VendingMachineBlockEntity extends BaseContainerBlockEntity implemen
         return Component.translatable("gui.currencycraft.vending_machine");
     }
 
-    public void load(CompoundTag p_155349_) {
-        super.load(p_155349_);
+    public void load(CompoundTag tag) {
+        super.load(tag);
         this.items = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
-        ContainerHelper.loadAllItems(p_155349_, this.items);
+        ContainerHelper.loadAllItems(tag, this.items);
+        
+        this.currencyInventory.clear();
+        if (tag.contains("CurrencyItems", 9)) { // 9 is the NBT type ID for ListTag
+             ListTag currencyListTag = tag.getList("CurrencyItems", 10); // 10 is the NBT type ID for CompoundTag
+ 
+             for(int i = 0; i < currencyListTag.size(); ++i) {
+                CompoundTag itemTag = currencyListTag.getCompound(i);
+                int slot = itemTag.getByte("Slot") & 255;
+                if (slot >= 0 && slot < this.currencyInventory.size()) {
+                   this.currencyInventory.set(slot, ItemStack.of(itemTag));
+                }
+             }
+        }
+
+        if (tag.contains("EjectTimer")) {
+            this.ejectTimer = tag.getInt("EjectTimer");
+        }
     }
 
-    protected void saveAdditional(CompoundTag p_187489_) {
-        super.saveAdditional(p_187489_);
-        ContainerHelper.saveAllItems(p_187489_, this.items);
+    protected void saveAdditional(CompoundTag tag) {
+        super.saveAdditional(tag);
+        ContainerHelper.saveAllItems(tag, this.items);
+        
+        ListTag currencyListTag = new ListTag();
+        for (int i = 0; i < this.currencyInventory.size(); ++i) {
+            ItemStack itemstack = this.currencyInventory.get(i);
+            if (!itemstack.isEmpty()) {
+                CompoundTag itemTag = new CompoundTag();
+                itemTag.putByte("Slot", (byte) i);
+                itemstack.save(itemTag);
+                currencyListTag.add(itemTag);
+            }
+        }
+        // Save the list to the main tag with our custom key "CurrencyItems"
+        tag.put("CurrencyItems", currencyListTag);
+        tag.putInt("EjectTimer", this.ejectTimer);
     }
 
     protected AbstractContainerMenu createMenu(int windowId, Inventory inventory) {
@@ -182,5 +221,95 @@ public class VendingMachineBlockEntity extends BaseContainerBlockEntity implemen
     @Override
     protected net.minecraftforge.items.IItemHandler createUnSidedHandler() {
         return new net.minecraftforge.items.wrapper.SidedInvWrapper(this, Direction.UP);
+    }
+
+    // --- NEW METHOD ---
+    /**
+     * Tries to add a currency stack to the internal currency inventory.
+     * Merges with existing stacks if possible, otherwise finds an empty slot.
+     * @param currencyStack The ItemStack to add.
+     * @return true if the item was successfully added, false otherwise.
+     */
+    public boolean addCurrency(ItemStack currencyStack) {
+        boolean success = false;
+        if (currencyStack.isEmpty()) {
+            return false;
+        }
+
+        // 1. Try to merge with an existing stack
+        for (int i = 0; i < this.currencyInventory.size(); i++) {
+            ItemStack slotStack = this.currencyInventory.get(i);
+            if (!slotStack.isEmpty() && ItemStack.isSameItemSameTags(slotStack, currencyStack)) {
+                int transferAmount = Math.min(currencyStack.getCount(), slotStack.getMaxStackSize() - slotStack.getCount());
+                if (transferAmount > 0) {
+                    slotStack.grow(transferAmount);
+                    currencyStack.shrink(transferAmount);
+                }
+                if (currencyStack.isEmpty()) {
+                    success = true;
+                }
+            }
+        }
+
+        // 2. If the stack is not empty, find a new slot
+        for (int i = 0; i < this.currencyInventory.size(); i++) {
+            if (this.currencyInventory.get(i).isEmpty()) {
+                this.currencyInventory.set(i, currencyStack.copy());
+                currencyStack.setCount(0); // Clear the original stack
+                success = true;
+            }
+        }
+        
+        if (success) {
+            this.ejectTimer = EJECT_DELAY_TICKS;
+            this.setChanged();
+        }
+
+        // No space left
+        return success;
+    }
+
+    // --- NEW METHOD ---
+    /**
+     * Drops all items from the currency inventory into the world.
+     * Called when the block is broken.
+     */
+    public void dropCurrencyContents() {
+        if (this.level != null && !this.level.isClientSide) {
+            Containers.dropContents(this.level, this.getBlockPos(), this.currencyInventory);
+        }
+    }
+
+    public void tick(Level level, BlockPos pos, BlockState state) {
+        // Don't do anything if the timer isn't running.
+        if (this.ejectTimer > 0) {
+            this.ejectTimer--; // Decrease the timer by one tick.
+            
+            // When the timer hits zero, eject the items.
+            if (this.ejectTimer == 0) {
+                this.dropCurrencyContents();
+                this.currencyInventory.clear(); // Clear the inventory after dropping it
+                this.setChanged(); // Mark as dirty to save the cleared inventory
+            }
+        }
+    }
+
+    public long calculateTotalCurrencyValueInCents() {
+        long totalValue = 0L; // Use a long for the total
+
+        for (ItemStack stack : this.currencyInventory) {
+            if (stack.isEmpty()) {
+                continue;
+            }
+
+            Item item = stack.getItem();
+            
+            // The value from the map is now a long (in cents)
+            long itemValue = CurrencyCraft.CURRENCY_VALUES.getOrDefault(item, 0L);
+            
+            totalValue += itemValue * stack.getCount();
+        }
+
+        return totalValue;
     }
 }
