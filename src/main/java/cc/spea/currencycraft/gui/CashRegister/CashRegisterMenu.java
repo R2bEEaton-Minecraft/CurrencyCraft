@@ -3,39 +3,18 @@ package cc.spea.currencycraft.gui.CashRegister;
 import cc.spea.currencycraft.CurrencyCraft;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
-import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
-import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.registries.RegistryObject;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 public class CashRegisterMenu extends AbstractContainerMenu {
     private final Container container;
     private final ContainerData data;
-    
-    private record PlaceholderData(ResourceLocation texture, RegistryObject<Item> item) {}
-
-    // --- START OF NEW CODE ---
-    private static final List<String> COIN_NAMES = List.of(
-            "one_cent_coin", "two_cent_coin", "five_cent_coin", "ten_cent_coin",
-            "twenty_cent_coin", "fifty_cent_coin", "one_unit_coin", "two_unit_coin"
-    );
-
-    private static final List<String> NOTE_NAMES = List.of(
-            "five_unit_note", "ten_unit_note", "twenty_unit_note", "fifty_unit_note",
-            "one_hundred_unit_note", "two_hundred_unit_note", "five_hundred_unit_note"
-    );
-    // --- END OF NEW CODE ---
-
 
     public CashRegisterMenu(int windowId, Inventory playerInv, Container container, ContainerData data) {
         super(CurrencyCraft.CASH_REGISTER_MENU.get(), windowId);

@@ -271,7 +271,7 @@ public class CurrencyCraft
 
         @SubscribeEvent
         public static void onItemColorRegister(RegisterColorHandlersEvent.Item event) {
-            event.getItemColors().register(
+            event.register(
                 (stack, tintIndex) -> {
                     if (tintIndex == 0) {
                         return ((DyeableLeatherItem) stack.getItem()).getColor(stack);

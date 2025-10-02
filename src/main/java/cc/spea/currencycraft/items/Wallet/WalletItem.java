@@ -2,8 +2,6 @@ package cc.spea.currencycraft.items.Wallet;
 
 import cc.spea.currencycraft.CurrencyCraft;
 import cc.spea.currencycraft.gui.Wallet.WalletMenu;
-import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
