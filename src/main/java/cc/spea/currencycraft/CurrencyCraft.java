@@ -19,6 +19,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
@@ -170,6 +171,7 @@ public class CurrencyCraft
     public static final RegistryObject<CreativeModeTab> CURRENCYCRAFT_TAB = CREATIVE_MODE_TABS.register("currencycraft_tab", () -> CreativeModeTab.builder()
             .withTabsBefore(CreativeModeTabs.COMBAT)
             .icon(() -> FIVE_EURO_NOTE.get().getDefaultInstance())
+            .title(Component.translatable("itemGroup.currencycraft.currencycraft_tab"))
             .displayItems((parameters, output) -> {
                 for (RegistryObject<Item> item : CURRENCYCRAFT_ITEMS.values()) {
                     output.accept(item.get());
