@@ -50,6 +50,7 @@ import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 import cc.spea.currencycraft.items.Wallet.WalletItem;
+import cc.spea.currencycraft.villager.CurrencyCraftVillagers;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -195,6 +196,8 @@ public class CurrencyCraft
         BLOCK_ENTITY_TYPES.register(modEventBus);
 
         MENUS.register(modEventBus);
+
+        CurrencyCraftVillagers.register(modEventBus);
 
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
