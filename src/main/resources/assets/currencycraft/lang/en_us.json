@@ -24,5 +24,6 @@
     "text.debit_card.unassigned": "Unassigned",
     "gui.currencycraft.cash_register.total": "Total: %s",
     "container.currencycraft.vending_machine.locked": "Vending Machine is now locked!",
-    "container.currencycraft.cash_register.locked": "Cash Register is now locked!"
+    "container.currencycraft.cash_register.locked": "Cash Register is now locked!",
+    "tooltip.currencycraft.wallet.total": "Total: %s"
 }

@@ -12,8 +12,9 @@ import cc.spea.currencycraft.gui.CashRegister.CashRegisterMenu;
 import cc.spea.currencycraft.gui.CashRegister.CashRegisterScreen;
 import cc.spea.currencycraft.gui.VendingMachine.VendingMachineRestockMenu;
 import cc.spea.currencycraft.gui.VendingMachine.VendingMachineRestockScreen;
+import cc.spea.currencycraft.gui.Wallet.WalletMenu;
+import cc.spea.currencycraft.gui.Wallet.WalletScreen;
 import cc.spea.currencycraft.items.DebitCardItem;
-import cc.spea.currencycraft.items.WalletItem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.core.BlockPos;
@@ -24,6 +25,7 @@ import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.DyeableLeatherItem;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -46,6 +48,7 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
+import cc.spea.currencycraft.items.Wallet.WalletItem;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -70,27 +73,6 @@ public class CurrencyCraft
     public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MODID);
 
     public static final DeferredRegister<MenuType<?>> MENUS = DeferredRegister.create(ForgeRegistries.MENU_TYPES, MODID);
-    public static final RegistryObject<MenuType<VendingMachineRestockMenu>> VENDING_MACHINE_RESTOCK_MENU =
-    MENUS.register("vending_machine_restock", 
-        () -> IForgeMenuType.create((windowId, inv, data) -> {
-            BlockPos pos = data.readBlockPos();
-            BlockEntity be = inv.player.level().getBlockEntity(pos);
-            if (be instanceof VendingMachineBlockEntity vm) {
-                return new VendingMachineRestockMenu(windowId, inv, vm);
-            }
-            return null;
-        }));
-    public static final RegistryObject<MenuType<CashRegisterMenu>> CASH_REGISTER_MENU =
-    MENUS.register("cash_register", 
-        () -> IForgeMenuType.create((windowId, inv, data) -> {
-            BlockPos pos = data.readBlockPos();
-            BlockEntity be = inv.player.level().getBlockEntity(pos);
-            if (be instanceof CashRegisterBlockEntity vm) {
-                return new CashRegisterMenu(windowId, inv, vm, vm.getContainerData());
-            }
-            return null;
-        }));
-
 
     public static final Map<Item, Long> CURRENCY_VALUES = new HashMap<>();
 
@@ -111,6 +93,36 @@ public class CurrencyCraft
     public static final RegistryObject<Item> DEBIT_CARD = ITEMS.register("debit_card", () -> new DebitCardItem(new Item.Properties().stacksTo(1)));
 
     public static final RegistryObject<Item> WALLET = ITEMS.register("wallet", () -> new WalletItem(new Item.Properties().stacksTo(1)));
+
+    public static final RegistryObject<MenuType<VendingMachineRestockMenu>> VENDING_MACHINE_RESTOCK_MENU =
+    MENUS.register("vending_machine_restock", 
+        () -> IForgeMenuType.create((windowId, inv, data) -> {
+            BlockPos pos = data.readBlockPos();
+            BlockEntity be = inv.player.level().getBlockEntity(pos);
+            if (be instanceof VendingMachineBlockEntity vm) {
+                return new VendingMachineRestockMenu(windowId, inv, vm);
+            }
+            return null;
+        }));
+    public static final RegistryObject<MenuType<CashRegisterMenu>> CASH_REGISTER_MENU =
+    MENUS.register("cash_register", 
+        () -> IForgeMenuType.create((windowId, inv, data) -> {
+            BlockPos pos = data.readBlockPos();
+            BlockEntity be = inv.player.level().getBlockEntity(pos);
+            if (be instanceof CashRegisterBlockEntity vm) {
+                return new CashRegisterMenu(windowId, inv, vm, vm.getContainerData());
+            }
+            return null;
+        }));
+    public static final RegistryObject<MenuType<WalletMenu>> WALLET_MENU =
+    MENUS.register("wallet", 
+        () -> IForgeMenuType.create((windowId, inv, data) -> {
+            ItemStack itemStack = data.readItem();
+            if (itemStack.is(WALLET.get())) {
+                return new WalletMenu(windowId, inv, itemStack);
+            }
+            return null;
+        }));
 
     // Helper method to register items
     private static RegistryObject<Item> registerItem(String name) {
@@ -250,6 +262,8 @@ public class CurrencyCraft
                         VendingMachineRestockScreen::new);
                 MenuScreens.register(CurrencyCraft.CASH_REGISTER_MENU.get(),
                         CashRegisterScreen::new);
+                MenuScreens.register(CurrencyCraft.WALLET_MENU.get(),
+                        WalletScreen::new);
             });
         }
 
