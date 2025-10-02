@@ -77,9 +77,7 @@ public class DebitCardItem extends Item {
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
         String owner = getOwnerName(stack);
         if (owner != null) {
-            tooltip.add(Component.translatable("text.debit_card.owner", owner));
-        } else {
-            tooltip.add(Component.translatable("text.debit_card.unassigned"));
+            tooltip.add(Component.translatable("text.currencycraft.debit_card.owner", owner));
         }
     }
 }
