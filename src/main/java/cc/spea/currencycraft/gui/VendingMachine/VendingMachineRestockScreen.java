@@ -2,6 +2,7 @@ package cc.spea.currencycraft.gui.VendingMachine;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 
+import cc.spea.currencycraft.CurrencyCraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
@@ -10,7 +11,7 @@ import net.minecraft.world.entity.player.Inventory;
 
 public class VendingMachineRestockScreen extends AbstractContainerScreen<VendingMachineRestockMenu> {
     private static final ResourceLocation TEXTURE =
-            new ResourceLocation("currencycraft", "textures/gui/vending_machine.png");
+            ResourceLocation.fromNamespaceAndPath(CurrencyCraft.MODID, "textures/gui/vending_machine.png");
 
     public VendingMachineRestockScreen(VendingMachineRestockMenu menu, Inventory playerInv, Component title) {
         super(menu, playerInv, title);

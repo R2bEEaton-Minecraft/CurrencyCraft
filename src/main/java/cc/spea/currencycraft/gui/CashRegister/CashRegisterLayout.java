@@ -60,7 +60,7 @@ public final class CashRegisterLayout {
         RegistryObject<Item> validItem = getValidItemForSlot(slotIndex);
         if (validItem != null) {
             String name = validItem.getId().getPath();
-            return new ResourceLocation(CurrencyCraft.MODID, "textures/gui/sprites/container/slots/" + name + ".png");
+            return ResourceLocation.fromNamespaceAndPath(CurrencyCraft.MODID, "textures/gui/sprites/container/slots/" + name + ".png");
         }
         return null;
     }

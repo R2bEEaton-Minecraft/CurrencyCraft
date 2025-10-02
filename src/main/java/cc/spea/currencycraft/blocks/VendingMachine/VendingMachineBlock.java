@@ -27,9 +27,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
@@ -53,7 +51,7 @@ import net.minecraftforge.network.NetworkHooks;
 
 public class VendingMachineBlock extends HorizontalEntityBlockBase {
     public static final EnumProperty<DoubleBlockHalf> HALF = BlockStateProperties.DOUBLE_BLOCK_HALF;
-    public static final ResourceLocation CONTENTS = new ResourceLocation("contents");
+    public static final ResourceLocation CONTENTS = ResourceLocation.parse("contents");
 
     public VendingMachineBlock(Properties properties) {
         super(properties);

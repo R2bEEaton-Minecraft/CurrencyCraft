@@ -11,7 +11,7 @@ import net.minecraft.world.entity.player.Inventory;
 public class CashRegisterScreen extends AbstractContainerScreen<CashRegisterMenu> {
     // Define the location of your GUI background texture
     private static final ResourceLocation TEXTURE =
-            new ResourceLocation(CurrencyCraft.MODID, "textures/gui/cash_register.png");
+            ResourceLocation.fromNamespaceAndPath(CurrencyCraft.MODID, "textures/gui/cash_register.png");
 
     public CashRegisterScreen(CashRegisterMenu pMenu, Inventory pPlayerInventory, Component pTitle) {
         super(pMenu, pPlayerInventory, pTitle);

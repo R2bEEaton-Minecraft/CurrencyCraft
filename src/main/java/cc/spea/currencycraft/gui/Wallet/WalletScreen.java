@@ -1,9 +1,7 @@
 package cc.spea.currencycraft.gui.Wallet;
 
-import cc.spea.currencycraft.items.Wallet.WalletInventory;
+import cc.spea.currencycraft.CurrencyCraft;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
-
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.GameRenderer;
@@ -15,7 +13,7 @@ public class WalletScreen extends AbstractContainerScreen<WalletMenu> {
 
     // Path to your GUI texture
     private static final ResourceLocation TEXTURE = 
-        new ResourceLocation("currencycraft", "textures/gui/wallet.png");
+        ResourceLocation.fromNamespaceAndPath(CurrencyCraft.MODID, "textures/gui/wallet.png");
 
     public WalletScreen(WalletMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
