@@ -12,6 +12,7 @@ import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.Containers;
+import net.minecraft.world.LockCode;
 import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -311,5 +312,22 @@ public class VendingMachineBlockEntity extends BaseContainerBlockEntity implemen
         }
 
         return totalValue;
+    }
+
+    public void setLock(LockCode code) {
+        CompoundTag tag = new CompoundTag();
+        code.addToTag(tag);
+        CompoundTag currentState = new CompoundTag();
+        this.saveAdditional(currentState);
+        currentState.merge(tag);
+        this.load(currentState);
+        this.setChanged();
+    }
+
+    public LockCode getLock() {
+        CompoundTag tag = new CompoundTag();
+        super.saveAdditional(tag);
+        LockCode savedLock = LockCode.fromTag(tag);
+        return savedLock;
     }
 }

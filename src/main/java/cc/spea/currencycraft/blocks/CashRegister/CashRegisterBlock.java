@@ -5,7 +5,6 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 import cc.spea.currencycraft.blocks.HorizontalEntityBlockBase;
-import cc.spea.currencycraft.blocks.VendingMachine.VendingMachineBlockEntity;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
@@ -13,9 +12,12 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.LockCode;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -29,7 +31,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.BlockHitResult;
@@ -71,15 +72,29 @@ public class CashRegisterBlock extends HorizontalEntityBlockBase {
 
     @Override
     public InteractionResult use(BlockState state, Level world, BlockPos pos,
-                                 Player player, InteractionHand hand, BlockHitResult hit) {
-        if (!world.isClientSide()) {
-            BlockEntity blockEntity = world.getBlockEntity(pos);
+                                Player player, InteractionHand hand, BlockHitResult hit) {
+        BlockEntity blockEntity = world.getBlockEntity(pos);
+        if (!(blockEntity instanceof CashRegisterBlockEntity cashRegister)) {
+            return InteractionResult.PASS;
+        }
 
-            if (blockEntity instanceof CashRegisterBlockEntity cashRegisterBlocKEntity) {
-                MenuProvider menuProvider = (MenuProvider) cashRegisterBlocKEntity;
-                if (player instanceof ServerPlayer serverPlayer) {
-                    NetworkHooks.openScreen(serverPlayer, menuProvider, pos);
-                }
+        ItemStack heldStack = player.getItemInHand(hand);
+
+        if (heldStack.hasCustomHoverName() && cashRegister.getLock().equals(LockCode.NO_LOCK)) {
+            if (!world.isClientSide()) {
+                LockCode newLock = new LockCode(heldStack.getHoverName().getString());
+                cashRegister.setLock(newLock);
+                player.displayClientMessage(Component.translatable("container.currencycraft.cash_register.locked"), true);
+                world.playSound(null, pos, SoundEvents.IRON_DOOR_CLOSE, SoundSource.BLOCKS, 1.0F, 1.0F);
+            }
+
+            return InteractionResult.SUCCESS;
+        }
+
+        if (!world.isClientSide()) {
+            MenuProvider menuProvider = (MenuProvider) cashRegister;
+            if (player instanceof ServerPlayer serverPlayer) {
+                NetworkHooks.openScreen(serverPlayer, menuProvider, pos);
             }
         }
         return InteractionResult.SUCCESS;

@@ -3,7 +3,6 @@ package cc.spea.currencycraft.blocks.CashRegister;
 import cc.spea.currencycraft.CurrencyCraft;
 import cc.spea.currencycraft.gui.CashRegister.CashRegisterLayout;
 import cc.spea.currencycraft.gui.CashRegister.CashRegisterMenu;
-import cc.spea.currencycraft.gui.VendingMachine.VendingMachineRestockMenu;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
@@ -11,6 +10,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.LockCode;
 import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -187,4 +187,21 @@ public class CashRegisterBlockEntity extends BaseContainerBlockEntity implements
             return 2;
         }
     };
+    
+    public void setLock(LockCode code) {
+        CompoundTag tag = new CompoundTag();
+        code.addToTag(tag);
+        CompoundTag currentState = new CompoundTag();
+        this.saveAdditional(currentState);
+        currentState.merge(tag);
+        this.load(currentState);
+        this.setChanged();
+    }
+
+    public LockCode getLock() {
+        CompoundTag tag = new CompoundTag();
+        super.saveAdditional(tag);
+        LockCode savedLock = LockCode.fromTag(tag);
+        return savedLock;
+    }
 }

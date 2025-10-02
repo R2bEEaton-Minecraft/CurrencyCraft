@@ -15,16 +15,21 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.LockCode;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
@@ -71,41 +76,63 @@ public class VendingMachineBlock extends HorizontalEntityBlockBase {
 
     @Override
     public InteractionResult use(BlockState state, Level world, BlockPos pos,
-                                 Player player, InteractionHand hand, BlockHitResult hit) {
+                                Player player, InteractionHand hand, BlockHitResult hit) {
+        
+        // We can't do anything without a block entity, so check for it first.
+        BlockPos blockEntityPos = (state.getValue(HALF) == DoubleBlockHalf.LOWER) ? pos : pos.below();
+        BlockEntity blockEntity = world.getBlockEntity(blockEntityPos);
+        if (!(blockEntity instanceof VendingMachineBlockEntity vendingMachine)) {
+            // If there's no block entity, pass so other logic (like placing a torch on the side) can run.
+            return InteractionResult.PASS;
+        }
+
+        ItemStack heldStack = player.getItemInHand(hand);
+
+        // --- LOCKING LOGIC ---
+        // This condition is now checked on BOTH the client and the server.
+        if (heldStack.hasCustomHoverName() && vendingMachine.getLock().equals(LockCode.NO_LOCK)) {
+            
+            // The actual logic that changes game state ONLY runs on the server.
+            if (!world.isClientSide()) {
+                LockCode newLock = new LockCode(heldStack.getHoverName().getString());
+                vendingMachine.setLock(newLock);
+                player.displayClientMessage(Component.translatable("container.currencycraft.vending_machine.locked"), true);
+                world.playSound(null, pos, SoundEvents.IRON_DOOR_CLOSE, SoundSource.BLOCKS, 1.0F, 1.0F);
+            }
+
+            // Return SUCCESS on BOTH sides. This is the crucial step.
+            // The client will swing the player's hand and stop the block from being placed.
+            return InteractionResult.SUCCESS;
+        }
+
+        // --- CURRENCY & GUI LOGIC ---
+        // If the locking logic didn't run, we proceed.
+        // We only want to run the core gameplay logic on the server.
         if (!world.isClientSide()) {
-            BlockPos blockEntityPos = (state.getValue(HALF) == DoubleBlockHalf.LOWER) ? pos : pos.below();
-            BlockEntity blockEntity = world.getBlockEntity(blockEntityPos);
+            
+            // Your currency logic remains server-side
+            boolean isCurrency = CurrencyCraft.CURRENCY_ITEMS.values().stream()
+                    .anyMatch(ro -> ro.get() == heldStack.getItem());
 
-            if (blockEntity instanceof VendingMachineBlockEntity vendingMachine) {
-                ItemStack heldStack = player.getItemInHand(hand);
-
-                // --- NEW LOGIC ---
-                // Check if the item in hand is a currency item.
-                boolean isCurrency = CurrencyCraft.CURRENCY_ITEMS.values().stream()
-                        .anyMatch(ro -> ro.get() == heldStack.getItem());
-
-                if (isCurrency) {
-                    // Try to add the currency to the machine's internal inventory
-                    boolean success = vendingMachine.addCurrency(heldStack);
-                    if (success) {
-                        // If successful, the BlockEntity has already taken the stack,
-                        // so we just need to clear it from the player's hand.
-                        // The `addCurrency` method handles shrinking/clearing the passed stack reference.
-                        player.setItemInHand(hand, heldStack); // Update player's hand with the (now empty or smaller) stack
-                        player.sendSystemMessage(Component.literal("" + vendingMachine.calculateTotalCurrencyValueInCents()));
-                        return InteractionResult.CONSUME;
-                    }
-                    // If it fails (e.g., currency inventory is full), we do nothing and let the GUI open below.
-                }
-                // --- END NEW LOGIC ---
-                
-                // If not holding currency, or if currency deposit failed, open the screen.
-                MenuProvider menuProvider = (MenuProvider) vendingMachine;
-                if (player instanceof ServerPlayer serverPlayer) {
-                    NetworkHooks.openScreen(serverPlayer, menuProvider, blockEntityPos);
+            if (isCurrency) {
+                boolean success = vendingMachine.addCurrency(heldStack);
+                if (success) {
+                    player.setItemInHand(hand, heldStack);
+                    player.sendSystemMessage(Component.literal("" + vendingMachine.calculateTotalCurrencyValueInCents()));
+                    return InteractionResult.CONSUME; // CONSUME is appropriate here
                 }
             }
+            
+            // Open the screen if no other action was taken
+            MenuProvider menuProvider = (MenuProvider) vendingMachine;
+            if (player instanceof ServerPlayer serverPlayer) {
+                NetworkHooks.openScreen(serverPlayer, menuProvider, blockEntityPos);
+            }
         }
+
+        // Since opening a GUI is a valid interaction that should also stop block placement,
+        // we return SUCCESS here as well. The server-side check above ensures the GUI only
+        // opens once, but the client needs this to know the click was handled.
         return InteractionResult.SUCCESS;
     }
 
