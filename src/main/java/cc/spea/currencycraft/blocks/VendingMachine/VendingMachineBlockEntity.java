@@ -1,12 +1,18 @@
 package cc.spea.currencycraft.blocks.VendingMachine;
 
+import java.util.List;
+
+import org.checkerframework.checker.nullness.qual.NonNull;
+
 import cc.spea.currencycraft.CurrencyCraft;
 import cc.spea.currencycraft.gui.VendingMachine.VendingMachineRestockMenu;
+import cc.spea.currencycraft.helper.ModHelpers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.LongTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.Container;
@@ -26,7 +32,7 @@ import net.minecraft.world.level.block.state.BlockState;
 
 public class VendingMachineBlockEntity extends BaseContainerBlockEntity implements WorldlyContainer {
     private NonNullList<ItemStack> items = NonNullList.withSize(getContainerSize(), ItemStack.EMPTY);
-    private NonNullList<ItemStack> currencyInventory = NonNullList.withSize(9, ItemStack.EMPTY);
+    private long insertedValueInCents = 0L;
     private int ejectTimer = 0;
     private static final int EJECT_DELAY_TICKS = 600;
 
@@ -102,17 +108,8 @@ public class VendingMachineBlockEntity extends BaseContainerBlockEntity implemen
         this.items = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
         ContainerHelper.loadAllItems(tag, this.items);
         
-        this.currencyInventory.clear();
-        if (tag.contains("CurrencyItems", 9)) { // 9 is the NBT type ID for ListTag
-             ListTag currencyListTag = tag.getList("CurrencyItems", 10); // 10 is the NBT type ID for CompoundTag
- 
-             for(int i = 0; i < currencyListTag.size(); ++i) {
-                CompoundTag itemTag = currencyListTag.getCompound(i);
-                int slot = itemTag.getByte("Slot") & 255;
-                if (slot >= 0 && slot < this.currencyInventory.size()) {
-                   this.currencyInventory.set(slot, ItemStack.of(itemTag));
-                }
-             }
+        if (tag.contains("InsertedValueInCents")) {
+            this.insertedValueInCents = 0L;
         }
 
         if (tag.contains("EjectTimer")) {
@@ -123,19 +120,9 @@ public class VendingMachineBlockEntity extends BaseContainerBlockEntity implemen
     protected void saveAdditional(CompoundTag tag) {
         super.saveAdditional(tag);
         ContainerHelper.saveAllItems(tag, this.items);
-        
-        ListTag currencyListTag = new ListTag();
-        for (int i = 0; i < this.currencyInventory.size(); ++i) {
-            ItemStack itemstack = this.currencyInventory.get(i);
-            if (!itemstack.isEmpty()) {
-                CompoundTag itemTag = new CompoundTag();
-                itemTag.putByte("Slot", (byte) i);
-                itemstack.save(itemTag);
-                currencyListTag.add(itemTag);
-            }
-        }
+
         // Save the list to the main tag with our custom key "CurrencyItems"
-        tag.put("CurrencyItems", currencyListTag);
+        tag.putLong("InsertedValueInCents", this.insertedValueInCents);
         tag.putInt("EjectTimer", this.ejectTimer);
     }
 
@@ -224,50 +211,16 @@ public class VendingMachineBlockEntity extends BaseContainerBlockEntity implemen
         return new net.minecraftforge.items.wrapper.SidedInvWrapper(this, Direction.UP);
     }
 
-    // --- NEW METHOD ---
-    /**
-     * Tries to add a currency stack to the internal currency inventory.
-     * Merges with existing stacks if possible, otherwise finds an empty slot.
-     * @param currencyStack The ItemStack to add.
-     * @return true if the item was successfully added, false otherwise.
-     */
     public boolean addCurrency(ItemStack currencyStack) {
-        boolean success = false;
         if (currencyStack.isEmpty()) {
             return false;
         }
-
-        // 1. Try to merge with an existing stack
-        for (int i = 0; i < this.currencyInventory.size(); i++) {
-            ItemStack slotStack = this.currencyInventory.get(i);
-            if (!slotStack.isEmpty() && ItemStack.isSameItemSameTags(slotStack, currencyStack)) {
-                int transferAmount = Math.min(currencyStack.getCount(), slotStack.getMaxStackSize() - slotStack.getCount());
-                if (transferAmount > 0) {
-                    slotStack.grow(transferAmount);
-                    currencyStack.shrink(transferAmount);
-                }
-                if (currencyStack.isEmpty()) {
-                    success = true;
-                }
-            }
-        }
-
-        // 2. If the stack is not empty, find a new slot
-        for (int i = 0; i < this.currencyInventory.size(); i++) {
-            if (this.currencyInventory.get(i).isEmpty()) {
-                this.currencyInventory.set(i, currencyStack.copy());
-                currencyStack.setCount(0); // Clear the original stack
-                success = true;
-            }
-        }
         
-        if (success) {
-            this.ejectTimer = EJECT_DELAY_TICKS;
-            this.setChanged();
-        }
+        this.insertedValueInCents += ModHelpers.calculateTotalCurrencyValueInCents(List.of(currencyStack));
+        this.ejectTimer = EJECT_DELAY_TICKS;
+        this.setChanged();
 
-        // No space left
-        return success;
+        return true;
     }
 
     // --- NEW METHOD ---
@@ -277,7 +230,7 @@ public class VendingMachineBlockEntity extends BaseContainerBlockEntity implemen
      */
     public void dropCurrencyContents() {
         if (this.level != null && !this.level.isClientSide) {
-            Containers.dropContents(this.level, this.getBlockPos(), this.currencyInventory);
+            Containers.dropContents(this.level, this.getBlockPos(), ModHelpers.calculateItemStacksFromCents(this.insertedValueInCents));
         }
     }
 
@@ -289,29 +242,14 @@ public class VendingMachineBlockEntity extends BaseContainerBlockEntity implemen
             // When the timer hits zero, eject the items.
             if (this.ejectTimer == 0) {
                 this.dropCurrencyContents();
-                this.currencyInventory.clear(); // Clear the inventory after dropping it
+                this.insertedValueInCents = 0;
                 this.setChanged(); // Mark as dirty to save the cleared inventory
             }
         }
     }
 
     public long calculateTotalCurrencyValueInCents() {
-        long totalValue = 0L; // Use a long for the total
-
-        for (ItemStack stack : this.currencyInventory) {
-            if (stack.isEmpty()) {
-                continue;
-            }
-
-            Item item = stack.getItem();
-            
-            // The value from the map is now a long (in cents)
-            long itemValue = CurrencyCraft.CURRENCY_VALUES.getOrDefault(item, 0L);
-            
-            totalValue += itemValue * stack.getCount();
-        }
-
-        return totalValue;
+        return this.insertedValueInCents;
     }
 
     public void setLock(LockCode code) {

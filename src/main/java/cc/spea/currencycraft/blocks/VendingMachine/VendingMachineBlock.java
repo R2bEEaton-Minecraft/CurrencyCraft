@@ -27,7 +27,9 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
@@ -115,7 +117,7 @@ public class VendingMachineBlock extends HorizontalEntityBlockBase {
             if (isCurrency) {
                 boolean success = vendingMachine.addCurrency(heldStack);
                 if (success) {
-                    player.setItemInHand(hand, heldStack);
+                    player.setItemInHand(hand, new ItemStack(Items.AIR));
                     player.sendSystemMessage(Component.literal("" + vendingMachine.calculateTotalCurrencyValueInCents()));
                     return InteractionResult.CONSUME; // CONSUME is appropriate here
                 }

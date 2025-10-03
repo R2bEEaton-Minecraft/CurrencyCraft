@@ -3,6 +3,13 @@
   "configurations": [
     {
       "type": "java",
+      "name": "ModHelpers",
+      "request": "launch",
+      "mainClass": "cc.spea.currencycraft.helper.ModHelpers",
+      "projectName": "CurrencyCraft"
+    },
+    {
+      "type": "java",
       "name": "GenerateRecipes",
       "request": "launch",
       "mainClass": "GenerateRecipes",

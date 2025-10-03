@@ -2,6 +2,8 @@ package cc.spea.currencycraft.items.Wallet;
 
 import cc.spea.currencycraft.CurrencyCraft;
 import cc.spea.currencycraft.gui.Wallet.WalletMenu;
+import cc.spea.currencycraft.helper.ModHelpers;
+import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
@@ -64,7 +66,7 @@ public class WalletItem extends Item implements DyeableLeatherItem {
 
         long totalValue = getTotalValue(stack);
         if (totalValue == 0) return;
-        double total = totalValue / 100;
+        double total = totalValue / 100.0f;
         String formattedValue = String.format("%.2f", total);
 
         tooltip.add(Component.translatable("tooltip.currencycraft.wallet.total", formattedValue));
@@ -76,7 +78,6 @@ public class WalletItem extends Item implements DyeableLeatherItem {
      * @return The total value in cents.
      */
     private long getTotalValue(ItemStack walletStack) {
-        long totalValue = 0L;
         CompoundTag tag = walletStack.getTag();
 
         if (tag == null || !tag.contains("Inventory", 9)) { // 9 = ListTag type
@@ -84,6 +85,7 @@ public class WalletItem extends Item implements DyeableLeatherItem {
         }
 
         ListTag inventoryTag = tag.getList("Inventory", 10); // 10 = CompoundTag type
+        NonNullList<ItemStack> itemStacks = NonNullList.create();
         for (int i = 0; i < inventoryTag.size(); i++) {
             CompoundTag itemTag = inventoryTag.getCompound(i);
             ItemStack itemStack = ItemStack.of(itemTag); // Recreate the ItemStack from its NBT
@@ -92,12 +94,9 @@ public class WalletItem extends Item implements DyeableLeatherItem {
                 continue;
             }
 
-            Item item = itemStack.getItem();
-            // Assumes your CURRENCY_VALUES map exists and is accessible
-            long itemValue = CurrencyCraft.CURRENCY_VALUES.getOrDefault(item, 0L);
-            totalValue += itemValue * itemStack.getCount();
+            itemStacks.add(itemStack);
         }
 
-        return totalValue;
+        return ModHelpers.calculateTotalCurrencyValueInCents(itemStacks);
     }
 }

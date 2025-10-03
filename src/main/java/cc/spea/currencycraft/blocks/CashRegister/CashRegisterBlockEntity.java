@@ -3,6 +3,7 @@ package cc.spea.currencycraft.blocks.CashRegister;
 import cc.spea.currencycraft.CurrencyCraft;
 import cc.spea.currencycraft.gui.CashRegister.CashRegisterLayout;
 import cc.spea.currencycraft.gui.CashRegister.CashRegisterMenu;
+import cc.spea.currencycraft.helper.ModHelpers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
@@ -146,22 +147,7 @@ public class CashRegisterBlockEntity extends BaseContainerBlockEntity implements
     }
 
     public long calculateTotalCurrencyValueInCents() {
-        long totalValue = 0L; // Use a long for the total
-
-        for (ItemStack stack : this.items) {
-            if (stack.isEmpty()) {
-                continue;
-            }
-
-            Item item = stack.getItem();
-            
-            // The value from the map is now a long (in cents)
-            long itemValue = CurrencyCraft.CURRENCY_VALUES.getOrDefault(item, 0L);
-            
-            totalValue += itemValue * stack.getCount();
-        }
-
-        return totalValue;
+        return ModHelpers.calculateTotalCurrencyValueInCents(this.items);
     }
 
     protected final ContainerData dataAccess = new ContainerData() {
