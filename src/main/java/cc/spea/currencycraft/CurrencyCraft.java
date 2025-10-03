@@ -50,6 +50,7 @@ import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 import cc.spea.currencycraft.items.Wallet.WalletItem;
+import cc.spea.currencycraft.network.ModMessages;
 import cc.spea.currencycraft.villager.CurrencyCraftVillagers;
 
 import java.util.HashMap;
@@ -240,6 +241,10 @@ public class CurrencyCraft
         Config.items.forEach((item) -> LOGGER.info("ITEM >> {}", item.toString()));
 
         registerCurrencyValues();
+
+        event.enqueueWork(() -> {
+            ModMessages.register();
+        });
     }
 
 

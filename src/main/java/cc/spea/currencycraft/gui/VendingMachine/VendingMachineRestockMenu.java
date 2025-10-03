@@ -1,6 +1,9 @@
+// VendingMachineRestockMenu
+
 package cc.spea.currencycraft.gui.VendingMachine;
 
 import cc.spea.currencycraft.CurrencyCraft;
+import cc.spea.currencycraft.blocks.VendingMachine.VendingMachineBlockEntity;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -16,28 +19,27 @@ public class VendingMachineRestockMenu extends AbstractContainerMenu {
         super(CurrencyCraft.VENDING_MACHINE_RESTOCK_MENU.get(), windowId);
         this.container = container;
 
+        int Y_START = 18 + 12;
+
         // Product Slots
         for (int i = 0; i < productSlots; i++) {
-            this.addSlot(new Slot(container, i, 8 + (i % 3) * 18, 18 + (i / 3) * 18));
+            this.addSlot(new Slot(container, i, 71 + (i % 3) * 18, Y_START + (i / 3) * 18));
         }
 
         // Money Slots
         for (int i = 0; i < this.container.getContainerSize() - productSlots; i++) {
-            this.addSlot(new Slot(container, productSlots + i, 8 + 7 * 18 + (i % 5) * 18, 18 + (i / 5) * 18) {
+            this.addSlot(new Slot(container, productSlots + i, 8 + 7 * 18 + (i % 5) * 18, Y_START + (i / 5) * 18) {
                 @Override
-                    public boolean mayPlace(ItemStack stack) {
-                        // If this is a payment slot
-                        if (this.getSlotIndex() >= productSlots) {
-                            // Prevent NullPointerException if the stack is null or empty
-                            if (stack == null || stack.isEmpty()) {
-                                return false;
-                            }
-                            
-                            // Check if the item from the stack exists as a value in our currency map.
-                            return CurrencyCraft.CURRENCY_ITEMS.values().stream()
-                                .anyMatch(registryObject -> registryObject.get() == stack.getItem());
+                public boolean mayPlace(ItemStack stack) {
+                    if (this.getSlotIndex() >= productSlots) {
+                        if (stack == null || stack.isEmpty()) {
+                            return false;
                         }
-                        return true;
+                        
+                        return CurrencyCraft.CURRENCY_ITEMS.values().stream()
+                            .anyMatch(registryObject -> registryObject.get() == stack.getItem());
+                    }
+                    return true;
                 }
             });
         }
@@ -45,20 +47,30 @@ public class VendingMachineRestockMenu extends AbstractContainerMenu {
         // Player inventory slots
         for(int l = 0; l < 3; ++l) {
             for(int j1 = 0; j1 < 9; ++j1) {
-                this.addSlot(new Slot(playerInv, j1 + l * 9 + 9, 36 + j1 * 18, 122 + l * 18));
+                this.addSlot(new Slot(playerInv, j1 + l * 9 + 9, 35 + j1 * 18, 134 + l * 18));
             }
         }
 
         for(int i1 = 0; i1 < 9; ++i1) {
-            this.addSlot(new Slot(playerInv, i1, 36 + i1 * 18, 180));
+            this.addSlot(new Slot(playerInv, i1, 35 + i1 * 18, 192));
         }
+    }
+
+    // --- NEW ---: Provides a safe way for the screen to access the BlockEntity
+    public VendingMachineBlockEntity getBlockEntity() {
+        if (this.container instanceof VendingMachineBlockEntity) {
+            return (VendingMachineBlockEntity) this.container;
+        }
+        // This should not happen
+        throw new IllegalStateException("Container is not a VendingMachineBlockEntity!");
     }
 
     @Override
     public boolean stillValid(Player player) {
         return this.container.stillValid(player);
     }
-
+    
+    // ... rest of the class is unchanged ...
     @Override
     public ItemStack quickMoveStack(Player player, int slotIndex) {
         int PRODUCT_SLOTS_COUNT = 12;
@@ -84,22 +96,16 @@ public class VendingMachineRestockMenu extends AbstractContainerMenu {
             }
             // Case 2: Player is shift-clicking FROM their inventory TO your custom inventory
             else {
-                // Check if the item is a valid currency item.
-                // You should have a helper method for this, maybe referencing your CURRENCY_ITEMS map.
                 boolean isCurrency = CurrencyCraft.CURRENCY_ITEMS.values().stream()
                     .anyMatch(ro -> ro.get() == sourceStack.getItem());
 
                 if (isCurrency) {
-                    // Try moving currency to the dedicated currency slots first (12-36)
                     if (!this.moveItemStackTo(sourceStack, PRODUCT_SLOTS_COUNT, PLAYER_INV_START, false)) {
-                        // If that fails, try moving it to the product slots (0-11)
                         if (!this.moveItemStackTo(sourceStack, 0, PRODUCT_SLOTS_COUNT, false)) {
                             return ItemStack.EMPTY;
                         }
                     }
                 } else {
-                    // It's not currency, so it must be a "product" or ingredient.
-                    // Only try to move it into the product slots (0-11).
                     if (!this.moveItemStackTo(sourceStack, 0, PRODUCT_SLOTS_COUNT, false)) {
                         return ItemStack.EMPTY;
                     }

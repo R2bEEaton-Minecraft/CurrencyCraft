@@ -1,3 +1,5 @@
+// VendingMachineBlockEntity
+
 package cc.spea.currencycraft.blocks.VendingMachine;
 
 import java.util.List;
@@ -39,6 +41,9 @@ public class VendingMachineBlockEntity extends BaseContainerBlockEntity implemen
     private final int productSlots = 12;
     private static final int totalSlots = 37;
 
+    // --- NEW ---: Array to store prices for each product slot in cents
+    private long[] productPrices = new long[productSlots];
+
     private static final int[] ALL_SLOTS = new int[totalSlots]; 
     static {
         for (int i = 0; i < ALL_SLOTS.length; i++) {
@@ -48,6 +53,22 @@ public class VendingMachineBlockEntity extends BaseContainerBlockEntity implemen
 
     public VendingMachineBlockEntity(BlockPos pos, BlockState state) {
         super(CurrencyCraft.VENDING_MACHINE_BLOCK_ENTITY.get(), pos, state);
+    }
+
+    // --- NEW ---: Getter for a product's price
+    public long getPriceInCents(int slot) {
+        if (slot >= 0 && slot < this.productSlots) {
+            return this.productPrices[slot];
+        }
+        return 0L;
+    }
+
+    // --- NEW ---: Setter for a product's price
+    public void setPriceInCents(int slot, long price) {
+        if (slot >= 0 && slot < this.productSlots) {
+            this.productPrices[slot] = price;
+            this.setChanged(); // Mark as dirty to save and sync
+        }
     }
 
     protected NonNullList<ItemStack> getItems() {
@@ -103,27 +124,40 @@ public class VendingMachineBlockEntity extends BaseContainerBlockEntity implemen
         return Component.translatable("block.currencycraft.vending_machine");
     }
 
+    @Override
     public void load(CompoundTag tag) {
         super.load(tag);
         this.items = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
         ContainerHelper.loadAllItems(tag, this.items);
         
         if (tag.contains("InsertedValueInCents")) {
-            this.insertedValueInCents = 0L;
+            this.insertedValueInCents = tag.getLong("InsertedValueInCents");
         }
 
         if (tag.contains("EjectTimer")) {
             this.ejectTimer = tag.getInt("EjectTimer");
         }
+        
+        // --- NEW ---: Load product prices
+        if (tag.contains("ProductPrices", 12)) { // 12 = LongArrayTag ID
+            long[] loadedPrices = tag.getLongArray("ProductPrices");
+            // Ensure the loaded array is the correct size, in case it was saved with a different size
+            if (loadedPrices.length == this.productSlots) {
+                this.productPrices = loadedPrices;
+            }
+        }
     }
 
+    @Override
     protected void saveAdditional(CompoundTag tag) {
         super.saveAdditional(tag);
         ContainerHelper.saveAllItems(tag, this.items);
 
-        // Save the list to the main tag with our custom key "CurrencyItems"
         tag.putLong("InsertedValueInCents", this.insertedValueInCents);
         tag.putInt("EjectTimer", this.ejectTimer);
+
+        // --- NEW ---: Save product prices
+        tag.putLongArray("ProductPrices", this.productPrices);
     }
 
     protected AbstractContainerMenu createMenu(int windowId, Inventory inventory) {
@@ -132,24 +166,12 @@ public class VendingMachineBlockEntity extends BaseContainerBlockEntity implemen
 
     @Override
     public void setChanged() {
-        // We only want to send updates from the server side.
-        // The client-side world is a "logical" world and doesn't have authority to send
-        // updates.
-        if (this.level != null) {
-            // This is the crucial line. It notifies the client that the block at this
-            // position has been updated.
-            // This triggers the server to call getUpdateTag() and send a packet to the
-            // client,
-            // which then calls handleUpdateTag() on the client.
+        if (this.level != null && !this.level.isClientSide) {
             this.level.sendBlockUpdated(this.worldPosition, getBlockState(), getBlockState(), Block.UPDATE_ALL);
         }
-
-        // Always call the super method to ensure the chunk is marked for saving.
         super.setChanged();
     }
 
-    // This is the "on load" part for the client. It provides the NBT data
-    // that will be sent to the client in the update packet.
     @Override
     public ClientboundBlockEntityDataPacket getUpdatePacket() {
         return ClientboundBlockEntityDataPacket.create(this);
@@ -160,10 +182,9 @@ public class VendingMachineBlockEntity extends BaseContainerBlockEntity implemen
         return this.saveWithoutMetadata();
     }
 
-    // This receives the update packet on the client and reads the NBT data.
     @Override
     public void handleUpdateTag(CompoundTag nbt) {
-        load(nbt); // Use our existing load logic
+        load(nbt);
     }
 
     @Override
@@ -181,13 +202,9 @@ public class VendingMachineBlockEntity extends BaseContainerBlockEntity implemen
             if (stack == null || stack.isEmpty()) {
                 return false;
             }
-
-            // Check if the item from the stack exists as a value in our currency map.
             return CurrencyCraft.CURRENCY_ITEMS.values().stream()
                     .anyMatch(registryObject -> registryObject.get() == stack.getItem());
         }
-
-        // Fallback for any other case
         return super.canPlaceItem(index, stack);
     }
 
@@ -222,12 +239,7 @@ public class VendingMachineBlockEntity extends BaseContainerBlockEntity implemen
 
         return true;
     }
-
-    // --- NEW METHOD ---
-    /**
-     * Drops all items from the currency inventory into the world.
-     * Called when the block is broken.
-     */
+    
     public void dropCurrencyContents() {
         if (this.level != null && !this.level.isClientSide) {
             Containers.dropContents(this.level, this.getBlockPos(), ModHelpers.calculateItemStacksFromCents(this.insertedValueInCents));
@@ -235,15 +247,13 @@ public class VendingMachineBlockEntity extends BaseContainerBlockEntity implemen
     }
 
     public void tick(Level level, BlockPos pos, BlockState state) {
-        // Don't do anything if the timer isn't running.
         if (this.ejectTimer > 0) {
-            this.ejectTimer--; // Decrease the timer by one tick.
+            this.ejectTimer--;
             
-            // When the timer hits zero, eject the items.
-            if (this.ejectTimer == 0) {
+            if (this.ejectTimer == 0 && this.insertedValueInCents > 0) {
                 this.dropCurrencyContents();
                 this.insertedValueInCents = 0;
-                this.setChanged(); // Mark as dirty to save the cleared inventory
+                this.setChanged();
             }
         }
     }
@@ -261,6 +271,8 @@ public class VendingMachineBlockEntity extends BaseContainerBlockEntity implemen
         this.load(currentState);
         this.setChanged();
     }
+
+
 
     public LockCode getLock() {
         CompoundTag tag = new CompoundTag();
