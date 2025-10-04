@@ -12,6 +12,7 @@ import cc.spea.currencycraft.CurrencyCraft;
 import cc.spea.currencycraft.blocks.VendingMachine.VendingMachineBlockEntity;
 import cc.spea.currencycraft.network.ModMessages; // Example import for your network handler
 import cc.spea.currencycraft.network.packets.C2SSetVendingPricePacket; // Example import for your packet
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
@@ -51,8 +52,6 @@ public class VendingMachineRestockScreen extends AbstractContainerScreen<Vending
     protected void init() {
         super.init();
 
-        // --- NEW WIDGETS ---
-        
         // Text box and Save button for editing prices (initially hidden)
         int priceFieldX = this.leftPos + 8;
         int priceFieldY = this.topPos + 106;
@@ -61,7 +60,7 @@ public class VendingMachineRestockScreen extends AbstractContainerScreen<Vending
         this.addRenderableWidget(this.priceField);
 
         this.saveButton = Button.builder(Component.translatable("gui.currencycraft.vending_machine.save"), button -> savePrice())
-            .bounds(priceFieldX + 54, priceFieldY - 1, 40, 14).build();
+            .bounds(priceFieldX + 55, priceFieldY - 1, 40, 14).build();
         this.saveButton.visible = false;
         this.addRenderableWidget(this.saveButton);
 
@@ -76,13 +75,11 @@ public class VendingMachineRestockScreen extends AbstractContainerScreen<Vending
                 
                 long priceInCents = this.blockEntity.getPriceInCents(slotIndex);
 
-                // Convert cents to dollars for formatting
-                double priceInDollars = priceInCents / 100.0;
+                Tooltip priceTooltip = generateTooltip(priceInCents);
 
                 Button priceButton = Button.builder(Component.translatable("gui.currencycraft.vending_machine.price_button"), button -> selectSlotForPricing(slotIndex))
                     .bounds(x + 1, y + 1, 16, 16)
-                    // Add a dollar sign and format the calculated dollar value
-                    .tooltip(Tooltip.create(Component.literal(String.format("%.2f", priceInDollars)).append("\n").append(Component.translatable("gui.currencycraft.vending_machine.edit"))))
+                    .tooltip(priceTooltip)
                     .build();
                 priceButtons[slotIndex] = priceButton;
                 this.addRenderableWidget(priceButton);
@@ -141,6 +138,7 @@ public class VendingMachineRestockScreen extends AbstractContainerScreen<Vending
         // Send the update to the server via a network packet
         // NOTE: You will need to create this packet and a network handler (e.g., ModMessages)
         ModMessages.sendToServer(new C2SSetVendingPricePacket(this.blockEntity.getBlockPos(), this.selectedSlot, priceInCents));
+        priceButtons[selectedSlot].setTooltip(generateTooltip(priceInCents));
 
         // Hide the editor UI after saving
         hidePriceEditor();
@@ -188,7 +186,7 @@ public class VendingMachineRestockScreen extends AbstractContainerScreen<Vending
             guiGraphics.fill(slotX, slotY, slotX + 16, slotY + 16, 0x80FFFFFF);
         }
 
-        if (this.hoveredSlot != -1) {
+        if (this.hoveredSlot != -1 && this.selectedSlot != this.hoveredSlot) {
             int row = this.hoveredSlot / 3;
             int col = this.hoveredSlot % 3;
             // This should highlight the actual item slot, which is to the left of the buttons
@@ -234,5 +232,39 @@ public class VendingMachineRestockScreen extends AbstractContainerScreen<Vending
 
         // Default behavior for other cases (e.g., Escape to close screen)
         return super.keyPressed(keyCode, scanCode, modifiers);
+    }
+
+    @Override
+    protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
+        // Draw the main inventory title
+        graphics.drawString(this.font, this.title, this.titleLabelX, this.titleLabelY, 4210752, false);
+        
+        // Draw the player inventory title
+        graphics.drawString(this.font, this.playerInventoryTitle, this.inventoryLabelX, this.inventoryLabelY, 4210752, false);
+
+        // --- NEW CODE FOR DISPLAYING THE TOTAL ---
+        drawStrings(graphics);
+    }
+
+    private void drawStrings(GuiGraphics graphics) {
+        Component pricesComponent = Component.translatable("gui.currencycraft.vending_machine.prices");
+        Component productComponent = Component.translatable("gui.currencycraft.vending_machine.product");
+        Component profitComponent = Component.translatable("gui.currencycraft.vending_machine.profit");
+
+        int x = this.titleLabelX;
+        int y = this.titleLabelY + 12;
+        
+        graphics.drawString(this.font, pricesComponent, x, y, 4210752, false);
+        graphics.drawString(this.font, productComponent, x + 63, y, 4210752, false);
+        graphics.drawString(this.font, profitComponent, x + 126, y, 4210752, false);
+    }
+
+    private Tooltip generateTooltip(long priceInCents) {
+        double priceInUnits = priceInCents / 100.0f;
+        return priceInUnits == 0
+            ? Tooltip.create(Component.translatable("gui.currencycraft.vending_machine.edit").withStyle(ChatFormatting.GOLD, ChatFormatting.ITALIC))
+            : Tooltip.create(Component.literal(String.format("%.2f", priceInUnits))
+                .append("\n")
+                .append(Component.translatable("gui.currencycraft.vending_machine.edit").withStyle(ChatFormatting.GOLD, ChatFormatting.ITALIC)));
     }
 }
