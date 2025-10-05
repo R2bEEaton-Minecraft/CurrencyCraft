@@ -4,6 +4,7 @@ package cc.spea.currencycraft.network;
 
 import cc.spea.currencycraft.CurrencyCraft;
 import cc.spea.currencycraft.network.packets.C2SSetVendingPricePacket;
+import cc.spea.currencycraft.network.packets.C2SPurchaseVendingMachineItem;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.network.NetworkDirection;
@@ -32,14 +33,17 @@ public class ModMessages {
 
         INSTANCE = net;
 
-        // Register the packet. The class, encoder, decoder, and handler are provided.
         net.messageBuilder(C2SSetVendingPricePacket.class, id(), NetworkDirection.PLAY_TO_SERVER)
                 .encoder(C2SSetVendingPricePacket::toBytes)
                 .decoder(C2SSetVendingPricePacket::new)
                 .consumerMainThread(C2SSetVendingPricePacket::handle)
                 .add();
-        
-        // You can register more packets here by repeating the above block
+
+        net.messageBuilder(C2SPurchaseVendingMachineItem.class, id(), NetworkDirection.PLAY_TO_SERVER)
+                .encoder(C2SPurchaseVendingMachineItem::toBytes)
+                .decoder(C2SPurchaseVendingMachineItem::new)
+                .consumerMainThread(C2SPurchaseVendingMachineItem::handle)
+                .add();
     }
 
     // Helper method to send a packet from the client to the server

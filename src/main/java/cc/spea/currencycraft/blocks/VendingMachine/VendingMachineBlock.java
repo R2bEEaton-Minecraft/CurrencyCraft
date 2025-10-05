@@ -4,8 +4,11 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
+import com.mojang.authlib.GameProfile;
+
 import cc.spea.currencycraft.CurrencyCraft;
 import cc.spea.currencycraft.blocks.HorizontalEntityBlockBase;
+import cc.spea.currencycraft.gui.VendingMachine.VendingMachineMenuProvider;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -38,6 +41,7 @@ import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -114,17 +118,27 @@ public class VendingMachineBlock extends HorizontalEntityBlockBase {
             boolean isCurrency = CurrencyCraft.CURRENCY_ITEMS.values().stream()
                     .anyMatch(ro -> ro.get() == heldStack.getItem());
 
+            ItemStack heldStackCopy = heldStack.copy();
+            heldStackCopy.setCount(1);
+
             if (isCurrency) {
-                boolean success = vendingMachine.addCurrency(heldStack);
+                boolean success = vendingMachine.addCurrency(heldStackCopy);
                 if (success) {
-                    player.setItemInHand(hand, new ItemStack(Items.AIR));
-                    player.sendSystemMessage(Component.literal("" + vendingMachine.calculateTotalCurrencyValueInCents()));
+                    if (!player.isCreative()) {
+                        heldStack.setCount(heldStack.getCount() - 1);
+                    }
+                    //player.sendSystemMessage(Component.literal("" + vendingMachine.calculateTotalCurrencyValueInCents()));
                     return InteractionResult.CONSUME; // CONSUME is appropriate here
                 }
             }
-            
-            // Open the screen if no other action was taken
-            MenuProvider menuProvider = (MenuProvider) vendingMachine;
+
+            MenuProvider menuProvider;
+            if (vendingMachine.getLock().unlocksWith(player.getMainHandItem())) {
+                menuProvider = new VendingMachineMenuProvider(vendingMachine, true);
+            } else {
+                menuProvider = new VendingMachineMenuProvider(vendingMachine, false);
+            }
+
             if (player instanceof ServerPlayer serverPlayer) {
                 NetworkHooks.openScreen(serverPlayer, menuProvider, blockEntityPos);
             }

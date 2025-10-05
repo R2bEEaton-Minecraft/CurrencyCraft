@@ -31,5 +31,6 @@
     "gui.currencycraft.vending_machine.price_button": "",
     "gui.currencycraft.vending_machine.prices": "Prices",
     "gui.currencycraft.vending_machine.product": "Product",
-    "gui.currencycraft.vending_machine.profit": "Profit"
+    "gui.currencycraft.vending_machine.profit": "Profit",
+    "gui.currencycraft.vending_machine.total": "Total: %s"
 }

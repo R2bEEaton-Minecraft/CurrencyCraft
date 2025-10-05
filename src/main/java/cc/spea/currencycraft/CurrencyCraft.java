@@ -10,6 +10,8 @@ import cc.spea.currencycraft.blocks.VendingMachine.VendingMachineBlockEntity;
 import cc.spea.currencycraft.blocks.VendingMachine.VendingMachineRenderer;
 import cc.spea.currencycraft.gui.CashRegister.CashRegisterMenu;
 import cc.spea.currencycraft.gui.CashRegister.CashRegisterScreen;
+import cc.spea.currencycraft.gui.VendingMachine.VendingMachinePurchaseMenu;
+import cc.spea.currencycraft.gui.VendingMachine.VendingMachinePurchaseScreen;
 import cc.spea.currencycraft.gui.VendingMachine.VendingMachineRestockMenu;
 import cc.spea.currencycraft.gui.VendingMachine.VendingMachineRestockScreen;
 import cc.spea.currencycraft.gui.Wallet.WalletMenu;
@@ -104,6 +106,16 @@ public class CurrencyCraft
             BlockEntity be = inv.player.level().getBlockEntity(pos);
             if (be instanceof VendingMachineBlockEntity vm) {
                 return new VendingMachineRestockMenu(windowId, inv, vm);
+            }
+            return null;
+        }));
+    public static final RegistryObject<MenuType<VendingMachinePurchaseMenu>> VENDING_MACHINE_PURCHASE_MENU =
+    MENUS.register("vending_machine_purchase", 
+        () -> IForgeMenuType.create((windowId, inv, data) -> {
+            BlockPos pos = data.readBlockPos();
+            BlockEntity be = inv.player.level().getBlockEntity(pos);
+            if (be instanceof VendingMachineBlockEntity vm) {
+                return new VendingMachinePurchaseMenu(windowId, inv, vm);
             }
             return null;
         }));
@@ -270,6 +282,8 @@ public class CurrencyCraft
             event.enqueueWork(() -> {
                 MenuScreens.register(CurrencyCraft.VENDING_MACHINE_RESTOCK_MENU.get(),
                         VendingMachineRestockScreen::new);
+                MenuScreens.register(CurrencyCraft.VENDING_MACHINE_PURCHASE_MENU.get(),
+                        VendingMachinePurchaseScreen::new);
                 MenuScreens.register(CurrencyCraft.CASH_REGISTER_MENU.get(),
                         CashRegisterScreen::new);
                 MenuScreens.register(CurrencyCraft.WALLET_MENU.get(),

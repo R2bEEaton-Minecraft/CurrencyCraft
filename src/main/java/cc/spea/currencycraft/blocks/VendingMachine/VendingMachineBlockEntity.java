@@ -4,17 +4,12 @@ package cc.spea.currencycraft.blocks.VendingMachine;
 
 import java.util.List;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-
 import cc.spea.currencycraft.CurrencyCraft;
-import cc.spea.currencycraft.gui.VendingMachine.VendingMachineRestockMenu;
 import cc.spea.currencycraft.helper.ModHelpers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.LongTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.Container;
@@ -25,10 +20,10 @@ import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -160,10 +155,6 @@ public class VendingMachineBlockEntity extends BaseContainerBlockEntity implemen
         tag.putLongArray("ProductPrices", this.productPrices);
     }
 
-    protected AbstractContainerMenu createMenu(int windowId, Inventory inventory) {
-        return new VendingMachineRestockMenu(windowId, inventory, this);
-    }
-
     @Override
     public void setChanged() {
         if (this.level != null && !this.level.isClientSide) {
@@ -242,7 +233,10 @@ public class VendingMachineBlockEntity extends BaseContainerBlockEntity implemen
     
     public void dropCurrencyContents() {
         if (this.level != null && !this.level.isClientSide) {
-            Containers.dropContents(this.level, this.getBlockPos(), ModHelpers.calculateItemStacksFromCents(this.insertedValueInCents));
+            BlockState blockState = this.getBlockState();
+            Direction facingDirection = blockState.getValue(HorizontalDirectionalBlock.FACING);
+            BlockPos dropPosition = this.getBlockPos().relative(facingDirection);
+            Containers.dropContents(this.level, dropPosition, ModHelpers.calculateItemStacksFromCents(this.insertedValueInCents));
         }
     }
 
@@ -262,6 +256,36 @@ public class VendingMachineBlockEntity extends BaseContainerBlockEntity implemen
         return this.insertedValueInCents;
     }
 
+    public boolean purchaseItem(int slotIndex) {
+        // System.out.println("Attempt purchase! " + slotIndex);
+
+        if (this.insertedValueInCents < productPrices[slotIndex]) {
+            return false;
+        }
+
+        ItemStack itemStack = this.items.get(slotIndex);
+
+        if (itemStack.isEmpty()) {
+            return false;
+        }
+
+        this.insertedValueInCents -= productPrices[slotIndex];
+        ItemStack copyStack = itemStack.copyWithCount(1);
+        itemStack.setCount(itemStack.getCount() - 1);
+        
+        if (this.level != null && !this.level.isClientSide) {
+            BlockState blockState = this.getBlockState();
+            Direction facingDirection = blockState.getValue(HorizontalDirectionalBlock.FACING);
+            BlockPos dropPosition = this.getBlockPos().relative(facingDirection);
+            Containers.dropContents(this.level, dropPosition, NonNullList.withSize(1, copyStack));
+        }
+
+        this.ejectTimer = EJECT_DELAY_TICKS;
+        this.setChanged();
+        
+        return true;
+    }
+
     public void setLock(LockCode code) {
         CompoundTag tag = new CompoundTag();
         code.addToTag(tag);
@@ -272,12 +296,15 @@ public class VendingMachineBlockEntity extends BaseContainerBlockEntity implemen
         this.setChanged();
     }
 
-
-
     public LockCode getLock() {
         CompoundTag tag = new CompoundTag();
         super.saveAdditional(tag);
         LockCode savedLock = LockCode.fromTag(tag);
         return savedLock;
+    }
+
+    @Override
+    protected AbstractContainerMenu createMenu(int p_58627_, Inventory p_58628_) {
+        return null;
     }
 }

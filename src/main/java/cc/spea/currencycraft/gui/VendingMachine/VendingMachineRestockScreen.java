@@ -3,8 +3,6 @@
 package cc.spea.currencycraft.gui.VendingMachine;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
-
 import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.systems.RenderSystem;
 
