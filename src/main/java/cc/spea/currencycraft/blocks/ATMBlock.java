@@ -38,8 +38,9 @@ public class ATMBlock extends HorizontalBlockBase {
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        // Use HorizontalBlockBase’s placement for FACING, then add HALF
-        return super.getStateForPlacement(context).setValue(HALF, DoubleBlockHalf.LOWER);
+        BlockPos blockpos = context.getClickedPos();
+        Level level = context.getLevel();
+        return blockpos.getY() < level.getMaxBuildHeight() - 1 && level.getBlockState(blockpos.above()).canBeReplaced(context) ? super.getStateForPlacement(context).setValue(HALF, DoubleBlockHalf.LOWER) : null;
     }
 
     @Override
