@@ -33,7 +33,7 @@ public class VendingMachinePurchaseScreen extends AbstractContainerScreen<Vendin
 
     public VendingMachinePurchaseScreen(VendingMachinePurchaseMenu menu, Inventory playerInv, Component title) {
         super(menu, playerInv, title);
-        this.imageWidth = 68;
+        this.imageWidth = 122;
         this.imageHeight = 108;
 
         this.blockEntity = menu.getBlockEntity();
@@ -45,7 +45,7 @@ public class VendingMachinePurchaseScreen extends AbstractContainerScreen<Vendin
     protected void init() {
         super.init();
 
-        int buttonGridX = this.leftPos + 7;
+        int buttonGridX = this.leftPos + 34;
         int buttonGridY = this.topPos + 29;
         for (int row = 0; row < 4; row++) {
             for (int col = 0; col < 3; col++) {
@@ -93,7 +93,7 @@ public class VendingMachinePurchaseScreen extends AbstractContainerScreen<Vendin
             if (this.blockEntity.getPriceInCents(i) > this.blockEntity.calculateTotalCurrencyValueInCents()) {
                 int row = i / 3;
                 int col = i % 3;
-                int slotX = this.leftPos + 9 + col * 18;
+                int slotX = this.leftPos + 36 + col * 18;
                 int slotY = this.topPos + 31 + row * 18;
                 guiGraphics.fill(slotX, slotY, slotX + 14, slotY + 14, 0x80FF0000);
             }
@@ -102,9 +102,8 @@ public class VendingMachinePurchaseScreen extends AbstractContainerScreen<Vendin
         this.renderTooltip(guiGraphics, mouseX, mouseY);
     }
 
-    // --- START: New helper method ---
     private void renderProductItems(GuiGraphics guiGraphics) {
-        int buttonGridX = this.leftPos + 7;
+        int buttonGridX = this.leftPos + 34;
         int buttonGridY = this.topPos + 29;
 
         for (int i = 0; i < this.blockEntity.getProductSlots(); i++) {
@@ -126,20 +125,20 @@ public class VendingMachinePurchaseScreen extends AbstractContainerScreen<Vendin
             }
         }
     }
-    // --- END: New helper method ---
 
     @Override
     protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
-        // Draw the main inventory title
         graphics.drawString(this.font, this.title, this.titleLabelX, this.titleLabelY, 4210752, false);
 
-        int x = this.titleLabelX;
-        int y = this.titleLabelY + 12;
-        
         Component insertedMoneyComponent = Component.translatable("gui.currencycraft.vending_machine.total",
-            String.format("%.2f", this.menu.getBlockEntity().calculateTotalCurrencyValueInCents() / 100.0f));
+                String.format("%.2f", this.menu.getBlockEntity().calculateTotalCurrencyValueInCents() / 100.0f));
 
-        graphics.drawString(this.font, insertedMoneyComponent, x, y, 4210752, false);
+        int textWidth = this.font.width(insertedMoneyComponent);
+        int centeredX = (this.imageWidth / 2) - (textWidth / 2);
+
+        int y = this.titleLabelY + 12;
+
+        graphics.drawString(this.font, insertedMoneyComponent, centeredX, y, 4210752, false);
     }
 
     private Tooltip generateTooltip(long priceInCents) {
