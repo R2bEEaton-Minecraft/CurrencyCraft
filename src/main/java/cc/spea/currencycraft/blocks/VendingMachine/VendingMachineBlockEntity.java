@@ -270,13 +270,72 @@ public class VendingMachineBlockEntity extends BaseContainerBlockEntity implemen
         }
 
         this.insertedValueInCents -= productPrices[slotIndex];
+
+        BlockState blockState = this.getBlockState();
+        Direction facingDirection = blockState.getValue(HorizontalDirectionalBlock.FACING);
+        BlockPos dropPosition = this.getBlockPos().relative(facingDirection);
+
+        NonNullList<ItemStack> salesStacks = ModHelpers.calculateItemStacksFromCents(productPrices[slotIndex]);
+
+        // List to keep track of any items that could not be fully inserted
+        NonNullList<ItemStack> remainingItems = NonNullList.create();
+
+        for (ItemStack stackToAdd : salesStacks) {
+            if (stackToAdd.isEmpty()) {
+                continue;
+            }
+
+            // Make a mutable copy to work with, as we will be changing its count
+            ItemStack stackToInsert = stackToAdd.copy();
+
+            // --- PASS 1: Merge with existing stacks ---
+            // Iterate from the starting slot to the end of the inventory
+            for (int i = 12; i < this.items.size(); i++) {
+                ItemStack slotStack = this.items.get(i);
+                // Check if the stack in the slot can be merged with our item
+                if (!slotStack.isEmpty() && ItemStack.isSameItemSameTags(slotStack, stackToInsert)) {
+                    int transferAmount = Math.min(stackToInsert.getCount(), slotStack.getMaxStackSize() - slotStack.getCount());
+                    
+                    if (transferAmount > 0) {
+                        slotStack.grow(transferAmount);
+                        stackToInsert.shrink(transferAmount);
+                    }
+                }
+                // If we've inserted the whole stack, we're done with this item
+                if (stackToInsert.isEmpty()) {
+                    break;
+                }
+            }
+
+            // --- PASS 2: Place in empty slots ---
+            // If the stack is still not empty, try finding an empty slot for the remainder
+            if (!stackToInsert.isEmpty()) {
+                for (int i = 12; i < this.items.size(); i++) {
+                    if (this.items.get(i).isEmpty()) {
+                        this.items.set(i, stackToInsert);
+                        stackToInsert = ItemStack.EMPTY; // The rest has been placed
+                        break;
+                    }
+                }
+            }
+
+            // --- Final Step: Add to remaining if still not empty ---
+            // If the stack still has items, it means the inventory is full.
+            if (!stackToInsert.isEmpty()) {
+                remainingItems.add(stackToInsert);
+            }
+        }
+
+        // After trying to add all items, drop any that didn't fit.
+        if (!remainingItems.isEmpty()) {
+            // You need to define 'dropPosition'. This is typically the BlockPos of your Block Entity.
+            Containers.dropContents(this.level, dropPosition, remainingItems);
+        }
+
         ItemStack copyStack = itemStack.copyWithCount(1);
         itemStack.setCount(itemStack.getCount() - 1);
         
         if (this.level != null && !this.level.isClientSide) {
-            BlockState blockState = this.getBlockState();
-            Direction facingDirection = blockState.getValue(HorizontalDirectionalBlock.FACING);
-            BlockPos dropPosition = this.getBlockPos().relative(facingDirection);
             Containers.dropContents(this.level, dropPosition, NonNullList.withSize(1, copyStack));
         }
 
