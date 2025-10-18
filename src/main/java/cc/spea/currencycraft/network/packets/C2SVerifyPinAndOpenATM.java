@@ -94,7 +94,8 @@ public class C2SVerifyPinAndOpenATM {
 
                 @Override
                 public AbstractContainerMenu createMenu(int windowId, Inventory playerInventory, Player player) {
-                    return new ATMMainMenu(windowId, playerInventory, new SimpleContainer(1), new SimpleContainerData(2));
+                    // Use 4 slots for balance: ContainerData syncs as shorts (16-bit), so we need 4 slots for a long
+                    return new ATMMainMenu(windowId, playerInventory, new SimpleContainer(1), new SimpleContainerData(4));
                 }
             });
         });

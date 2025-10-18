@@ -29,7 +29,8 @@ public class ATMMainMenu extends AbstractContainerMenu {
 
     // Client-side constructor
     public ATMMainMenu(int windowId, Inventory playerInventory, FriendlyByteBuf data) {
-        this(windowId, playerInventory, new SimpleContainer(1), new SimpleContainerData(2));
+        // Use 4 slots for balance: ContainerData syncs as shorts (16-bit), so we need 4 slots for a long
+        this(windowId, playerInventory, new SimpleContainer(1), new SimpleContainerData(4));
     }
 
     // Server-side constructor
@@ -100,9 +101,12 @@ public class ATMMainMenu extends AbstractContainerMenu {
 
                 if (account.isCardValid(cardId, pin)) {
                     long balance = account.getBalance();
-                    // Split balance into two ints (upper and lower 32 bits)
-                    balanceData.set(0, (int) (balance >> 32));
-                    balanceData.set(1, (int) (balance & 0xFFFFFFFFL));
+                    // Split balance into four shorts (16-bit values) because ContainerData syncs as shorts over network
+                    // Balance = [short3][short2][short1][short0] where each is 16 bits
+                    balanceData.set(0, (int) ((balance >> 48) & 0xFFFF)); // bits 48-63
+                    balanceData.set(1, (int) ((balance >> 32) & 0xFFFF)); // bits 32-47
+                    balanceData.set(2, (int) ((balance >> 16) & 0xFFFF)); // bits 16-31
+                    balanceData.set(3, (int) (balance & 0xFFFF));         // bits 0-15
                 }
             }
         }
@@ -110,11 +114,16 @@ public class ATMMainMenu extends AbstractContainerMenu {
 
     /**
      * Gets the current balance from the container data.
+     * Reconstructs a long from four 16-bit shorts (because ContainerData syncs as shorts over network).
      */
     public long getBalance() {
-        long upper = (long) balanceData.get(0) << 32;
-        long lower = balanceData.get(1) & 0xFFFFFFFFL;
-        return upper | lower;
+        // Reconstruct balance from four shorts (16-bit values)
+        long short3 = balanceData.get(0) & 0xFFFFL; // bits 48-63
+        long short2 = balanceData.get(1) & 0xFFFFL; // bits 32-47
+        long short1 = balanceData.get(2) & 0xFFFFL; // bits 16-31
+        long short0 = balanceData.get(3) & 0xFFFFL; // bits 0-15
+
+        return (short3 << 48) | (short2 << 32) | (short1 << 16) | short0;
     }
 
     @Override
