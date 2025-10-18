@@ -58,9 +58,10 @@ public class C2SSetupDebitCard {
             // Generate a unique card ID
             UUID cardId = UUID.randomUUID();
 
-            // Set up the card with the ID and PIN
+            // Set up the card with the ID, PIN, and owner information
             DebitCardItem.setCardId(heldItem, cardId);
             DebitCardItem.setPin(heldItem, pin);
+            DebitCardItem.setOwner(heldItem, player.getUUID(), player.getName().getString());
 
             // Get or create the player's bank account and link this card
             BankAccountManager manager = BankAccountManager.get(player.server);

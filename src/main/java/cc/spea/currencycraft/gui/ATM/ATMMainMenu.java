@@ -88,9 +88,15 @@ public class ATMMainMenu extends AbstractContainerMenu {
             if (DebitCardItem.isValidCard(cardStack)) {
                 UUID cardId = DebitCardItem.getCardId(cardStack);
                 String pin = DebitCardItem.getPin(cardStack);
+                UUID ownerUuid = DebitCardItem.getOwnerUuid(cardStack);
+
+                // Backwards compatibility: if card has no owner (old card), fall back to player UUID
+                if (ownerUuid == null) {
+                    ownerUuid = player.getUUID();
+                }
 
                 BankAccountManager manager = BankAccountManager.get(serverPlayer.server);
-                BankAccountData account = manager.getAccount(player.getUUID());
+                BankAccountData account = manager.getAccount(ownerUuid);
 
                 if (account.isCardValid(cardId, pin)) {
                     long balance = account.getBalance();
@@ -148,6 +154,10 @@ public class ATMMainMenu extends AbstractContainerMenu {
                 if (!this.moveItemStackTo(slotStack, DEPOSIT_SLOT_INDEX, DEPOSIT_SLOT_INDEX + 1, false)) {
                     return ItemStack.EMPTY;
                 }
+            }
+            // Non-currency items from player inventory - don't move to deposit slot
+            else {
+                return ItemStack.EMPTY;
             }
 
             if (slotStack.isEmpty()) {

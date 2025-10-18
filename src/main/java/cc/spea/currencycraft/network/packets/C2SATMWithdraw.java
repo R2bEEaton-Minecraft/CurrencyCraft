@@ -55,10 +55,16 @@ public class C2SATMWithdraw {
 
             UUID cardId = DebitCardItem.getCardId(cardStack);
             String pin = DebitCardItem.getPin(cardStack);
+            UUID ownerUuid = DebitCardItem.getOwnerUuid(cardStack);
 
-            // Get bank account and validate card
+            // Backwards compatibility: if card has no owner (old card), fall back to player UUID
+            if (ownerUuid == null) {
+                ownerUuid = player.getUUID();
+            }
+
+            // Get bank account using card owner's UUID and validate card
             BankAccountManager manager = BankAccountManager.get(player.server);
-            BankAccountData account = manager.getAccount(player.getUUID());
+            BankAccountData account = manager.getAccount(ownerUuid);
 
             if (!account.isCardValid(cardId, pin)) {
                 player.displayClientMessage(Component.translatable("text.currencycraft.atm.card_not_authorized"), true);

@@ -20,7 +20,7 @@
     "block.currencycraft.cash_register": "Cash Register",
     "block.currencycraft.vending_machine": "Vending Machine",
     "itemGroup.currencycraft.currencycraft_tab": "CurrencyCraft",
-    "text.currencycraft.debit_card.owner": "Owner: {0}",
+    "text.currencycraft.debit_card.owner": "Owner: %s",
     "gui.currencycraft.cash_register.total": "Total: %s",
     "container.currencycraft.vending_machine.locked": "Vending Machine is now locked!",
     "container.currencycraft.cash_register.locked": "Cash Register is now locked!",

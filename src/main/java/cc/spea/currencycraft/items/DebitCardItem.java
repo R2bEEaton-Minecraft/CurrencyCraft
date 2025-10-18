@@ -16,6 +16,8 @@ public class DebitCardItem extends Item {
     private static final String CARD_ID_KEY = "CardId";
     private static final String PIN_KEY = "Pin";
     private static final String CANCELLED_KEY = "Cancelled";
+    private static final String OWNER_UUID_KEY = "OwnerUUID";
+    private static final String OWNER_NAME_KEY = "OwnerName";
 
     public DebitCardItem(Properties properties) {
         super(properties);
@@ -77,6 +79,34 @@ public class DebitCardItem extends Item {
         return tag != null && tag.getBoolean(CANCELLED_KEY);
     }
 
+    // --- Owner handling ---
+    public static void setOwner(ItemStack stack, UUID ownerUuid, String ownerName) {
+        CompoundTag tag = stack.getOrCreateTag();
+        tag.putUUID(OWNER_UUID_KEY, ownerUuid);
+        tag.putString(OWNER_NAME_KEY, ownerName);
+    }
+
+    public static UUID getOwnerUuid(ItemStack stack) {
+        CompoundTag tag = stack.getTag();
+        if (tag != null && tag.hasUUID(OWNER_UUID_KEY)) {
+            return tag.getUUID(OWNER_UUID_KEY);
+        }
+        return null;
+    }
+
+    public static String getOwnerName(ItemStack stack) {
+        CompoundTag tag = stack.getTag();
+        if (tag != null && tag.contains(OWNER_NAME_KEY)) {
+            return tag.getString(OWNER_NAME_KEY);
+        }
+        return null;
+    }
+
+    public static boolean hasOwner(ItemStack stack) {
+        CompoundTag tag = stack.getTag();
+        return tag != null && tag.hasUUID(OWNER_UUID_KEY);
+    }
+
     // --- Combined validation ---
     public static boolean isValidCard(ItemStack stack) {
         return hasCardId(stack) && hasPin(stack) && !isCancelled(stack);
@@ -85,6 +115,11 @@ public class DebitCardItem extends Item {
     // --- Tooltip ---
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
+        String ownerName = getOwnerName(stack);
+        if (ownerName != null) {
+            tooltip.add(Component.translatable("text.currencycraft.debit_card.owner", ownerName));
+        }
+
         if (isCancelled(stack)) {
             tooltip.add(Component.translatable("text.currencycraft.debit_card.cancelled"));
         } else if (isBlankCard(stack)) {

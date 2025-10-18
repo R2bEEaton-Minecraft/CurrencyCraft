@@ -61,6 +61,12 @@ public class C2SVerifyPinAndOpenATM {
 
             UUID cardId = DebitCardItem.getCardId(cardStack);
             String storedPin = DebitCardItem.getPin(cardStack);
+            UUID ownerUuid = DebitCardItem.getOwnerUuid(cardStack);
+
+            // Backwards compatibility: if card has no owner (old card), fall back to player UUID
+            if (ownerUuid == null) {
+                ownerUuid = player.getUUID();
+            }
 
             // Verify the entered PIN matches the card's PIN
             if (!enteredPin.equals(storedPin)) {
@@ -69,9 +75,9 @@ public class C2SVerifyPinAndOpenATM {
                 return;
             }
 
-            // Get bank account and validate card
+            // Get bank account using card owner's UUID and validate card
             BankAccountManager manager = BankAccountManager.get(player.server);
-            BankAccountData account = manager.getAccount(player.getUUID());
+            BankAccountData account = manager.getAccount(ownerUuid);
 
             if (!account.isCardValid(cardId, storedPin)) {
                 player.displayClientMessage(Component.translatable("text.currencycraft.atm.card_not_authorized"), true);
