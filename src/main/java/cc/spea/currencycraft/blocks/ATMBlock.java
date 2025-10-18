@@ -1,12 +1,22 @@
 package cc.spea.currencycraft.blocks;
 
 import cc.spea.currencycraft.CurrencyCraft;
+import cc.spea.currencycraft.bank.BankAccountData;
+import cc.spea.currencycraft.bank.BankAccountManager;
+import cc.spea.currencycraft.gui.ATM.ATMFingerprintMenu;
+import cc.spea.currencycraft.gui.ATM.ATMSetupMenu;
+import cc.spea.currencycraft.items.DebitCardItem;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
@@ -19,6 +29,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraftforge.network.NetworkHooks;
 
 public class ATMBlock extends HorizontalBlockBase {
     public static final EnumProperty<DoubleBlockHalf> HALF = BlockStateProperties.DOUBLE_BLOCK_HALF;
@@ -46,13 +57,87 @@ public class ATMBlock extends HorizontalBlockBase {
     @Override
     public InteractionResult use(BlockState state, Level world, BlockPos pos,
                                  Player player, InteractionHand hand, BlockHitResult hit) {
-        ItemStack held = player.getItemInHand(hand);
-
-        if (held.getItem() == CurrencyCraft.DEBIT_CARD.get()) {
+        if (world.isClientSide) {
             return InteractionResult.SUCCESS;
         }
 
-        return super.use(state, world, pos, player, hand, hit);
+        if (!(player instanceof ServerPlayer serverPlayer)) {
+            return InteractionResult.PASS;
+        }
+
+        ItemStack held = player.getItemInHand(hand);
+
+        // Scenario 1: Player is holding a blank debit card -> Check if they already have an active card
+        if (held.getItem() == CurrencyCraft.DEBIT_CARD.get() && DebitCardItem.isBlankCard(held)) {
+            BankAccountManager manager = BankAccountManager.get(serverPlayer.server);
+            BankAccountData account = manager.getAccount(player.getUUID());
+
+            if (account.hasActiveCard()) {
+                // Player already has an active card - can't set up another
+                player.displayClientMessage(Component.translatable("text.currencycraft.atm.card_already_exists"), true);
+                return InteractionResult.FAIL;
+            }
+
+            // No active card - allow setup
+            NetworkHooks.openScreen(serverPlayer, new MenuProvider() {
+                @Override
+                public Component getDisplayName() {
+                    return Component.translatable("container.currencycraft.atm_setup");
+                }
+
+                @Override
+                public AbstractContainerMenu createMenu(int windowId, Inventory playerInventory, Player player) {
+                    return new ATMSetupMenu(windowId, playerInventory);
+                }
+            });
+            return InteractionResult.SUCCESS;
+        }
+
+        // Scenario 2: Player is holding a valid debit card -> Open PIN entry menu
+        if (held.getItem() == CurrencyCraft.DEBIT_CARD.get() && DebitCardItem.isValidCard(held)) {
+            NetworkHooks.openScreen(serverPlayer, new MenuProvider() {
+                @Override
+                public Component getDisplayName() {
+                    return Component.translatable("container.currencycraft.atm_pin_entry");
+                }
+
+                @Override
+                public AbstractContainerMenu createMenu(int windowId, Inventory playerInventory, Player player) {
+                    return new cc.spea.currencycraft.gui.ATM.ATMPinEntryMenu(windowId, playerInventory);
+                }
+            });
+            return InteractionResult.SUCCESS;
+        }
+
+        // Scenario 3: Player holding a cancelled card
+        if (held.getItem() == CurrencyCraft.DEBIT_CARD.get() && DebitCardItem.isCancelled(held)) {
+            player.displayClientMessage(Component.translatable("text.currencycraft.atm.card_cancelled"), true);
+            return InteractionResult.FAIL;
+        }
+
+        // Scenario 4: Player not holding a debit card -> Check if they have an active card
+        BankAccountManager manager = BankAccountManager.get(serverPlayer.server);
+        BankAccountData account = manager.getAccount(player.getUUID());
+
+        if (account.hasActiveCard()) {
+            // Player has an active card - open fingerprint menu to disable it
+            NetworkHooks.openScreen(serverPlayer, new MenuProvider() {
+                @Override
+                public Component getDisplayName() {
+                    return Component.translatable("container.currencycraft.atm_fingerprint");
+                }
+
+                @Override
+                public AbstractContainerMenu createMenu(int windowId, Inventory playerInventory, Player player) {
+                    return new ATMFingerprintMenu(windowId, playerInventory);
+                }
+            });
+            return InteractionResult.SUCCESS;
+        } else {
+            // Player has no active card - show message
+            player.displayClientMessage(Component.translatable("text.currencycraft.atm.no_card_to_disable"), true);
+            return InteractionResult.FAIL;
+        }
     }
 
     @Override

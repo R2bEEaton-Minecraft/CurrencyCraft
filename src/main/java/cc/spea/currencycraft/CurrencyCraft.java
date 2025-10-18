@@ -16,6 +16,14 @@ import cc.spea.currencycraft.gui.VendingMachine.VendingMachineRestockMenu;
 import cc.spea.currencycraft.gui.VendingMachine.VendingMachineRestockScreen;
 import cc.spea.currencycraft.gui.Wallet.WalletMenu;
 import cc.spea.currencycraft.gui.Wallet.WalletScreen;
+import cc.spea.currencycraft.gui.ATM.ATMSetupMenu;
+import cc.spea.currencycraft.gui.ATM.ATMSetupScreen;
+import cc.spea.currencycraft.gui.ATM.ATMFingerprintMenu;
+import cc.spea.currencycraft.gui.ATM.ATMFingerprintScreen;
+import cc.spea.currencycraft.gui.ATM.ATMPinEntryMenu;
+import cc.spea.currencycraft.gui.ATM.ATMPinEntryScreen;
+import cc.spea.currencycraft.gui.ATM.ATMMainMenu;
+import cc.spea.currencycraft.gui.ATM.ATMMainScreen;
 import cc.spea.currencycraft.items.DebitCardItem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.MenuScreens;
@@ -130,7 +138,7 @@ public class CurrencyCraft
             return null;
         }));
     public static final RegistryObject<MenuType<WalletMenu>> WALLET_MENU =
-    MENUS.register("wallet", 
+    MENUS.register("wallet",
         () -> IForgeMenuType.create((windowId, inv, data) -> {
             ItemStack itemStack = data.readItem();
             if (itemStack.is(WALLET.get())) {
@@ -138,6 +146,22 @@ public class CurrencyCraft
             }
             return null;
         }));
+
+    public static final RegistryObject<MenuType<ATMSetupMenu>> ATM_SETUP_MENU =
+    MENUS.register("atm_setup",
+        () -> IForgeMenuType.create(ATMSetupMenu::new));
+
+    public static final RegistryObject<MenuType<ATMFingerprintMenu>> ATM_FINGERPRINT_MENU =
+    MENUS.register("atm_fingerprint",
+        () -> IForgeMenuType.create(ATMFingerprintMenu::new));
+
+    public static final RegistryObject<MenuType<ATMPinEntryMenu>> ATM_PIN_ENTRY_MENU =
+    MENUS.register("atm_pin_entry",
+        () -> IForgeMenuType.create(ATMPinEntryMenu::new));
+
+    public static final RegistryObject<MenuType<ATMMainMenu>> ATM_MAIN_MENU =
+    MENUS.register("atm_main",
+        () -> IForgeMenuType.create(ATMMainMenu::new));
 
     // Helper method to register items
     private static RegistryObject<Item> registerItem(String name) {
@@ -288,6 +312,14 @@ public class CurrencyCraft
                         CashRegisterScreen::new);
                 MenuScreens.register(CurrencyCraft.WALLET_MENU.get(),
                         WalletScreen::new);
+                MenuScreens.register(CurrencyCraft.ATM_SETUP_MENU.get(),
+                        ATMSetupScreen::new);
+                MenuScreens.register(CurrencyCraft.ATM_FINGERPRINT_MENU.get(),
+                        ATMFingerprintScreen::new);
+                MenuScreens.register(CurrencyCraft.ATM_PIN_ENTRY_MENU.get(),
+                        ATMPinEntryScreen::new);
+                MenuScreens.register(CurrencyCraft.ATM_MAIN_MENU.get(),
+                        ATMMainScreen::new);
             });
         }
 

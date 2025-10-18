@@ -3,8 +3,7 @@
 package cc.spea.currencycraft.network;
 
 import cc.spea.currencycraft.CurrencyCraft;
-import cc.spea.currencycraft.network.packets.C2SSetVendingPricePacket;
-import cc.spea.currencycraft.network.packets.C2SPurchaseVendingMachineItem;
+import cc.spea.currencycraft.network.packets.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.network.NetworkDirection;
@@ -43,6 +42,36 @@ public class ModMessages {
                 .encoder(C2SPurchaseVendingMachineItem::toBytes)
                 .decoder(C2SPurchaseVendingMachineItem::new)
                 .consumerMainThread(C2SPurchaseVendingMachineItem::handle)
+                .add();
+
+        net.messageBuilder(C2SSetupDebitCard.class, id(), NetworkDirection.PLAY_TO_SERVER)
+                .encoder(C2SSetupDebitCard::toBytes)
+                .decoder(C2SSetupDebitCard::new)
+                .consumerMainThread(C2SSetupDebitCard::handle)
+                .add();
+
+        net.messageBuilder(C2SATMDeposit.class, id(), NetworkDirection.PLAY_TO_SERVER)
+                .encoder(C2SATMDeposit::toBytes)
+                .decoder(C2SATMDeposit::new)
+                .consumerMainThread(C2SATMDeposit::handle)
+                .add();
+
+        net.messageBuilder(C2SATMWithdraw.class, id(), NetworkDirection.PLAY_TO_SERVER)
+                .encoder(C2SATMWithdraw::toBytes)
+                .decoder(C2SATMWithdraw::new)
+                .consumerMainThread(C2SATMWithdraw::handle)
+                .add();
+
+        net.messageBuilder(C2SDisableDebitCard.class, id(), NetworkDirection.PLAY_TO_SERVER)
+                .encoder(C2SDisableDebitCard::toBytes)
+                .decoder(C2SDisableDebitCard::new)
+                .consumerMainThread(C2SDisableDebitCard::handle)
+                .add();
+
+        net.messageBuilder(C2SVerifyPinAndOpenATM.class, id(), NetworkDirection.PLAY_TO_SERVER)
+                .encoder(C2SVerifyPinAndOpenATM::toBytes)
+                .decoder(C2SVerifyPinAndOpenATM::new)
+                .consumerMainThread(C2SVerifyPinAndOpenATM::handle)
                 .add();
     }
 

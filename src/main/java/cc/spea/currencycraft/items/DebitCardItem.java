@@ -13,71 +13,84 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 
 public class DebitCardItem extends Item {
-    private static final String OWNER_KEY = "Owner";
+    private static final String CARD_ID_KEY = "CardId";
     private static final String PIN_KEY = "Pin";
-    private static final String OWNER_NAME_KEY = "OwnerName";
+    private static final String CANCELLED_KEY = "Cancelled";
 
     public DebitCardItem(Properties properties) {
         super(properties);
     }
 
-    // --- Owner handling ---
-    public static void setOwner(ItemStack stack, UUID owner, String ownerName) {
+    // --- Card ID handling (unique identifier for each card) ---
+    public static void setCardId(ItemStack stack, UUID cardId) {
         CompoundTag tag = stack.getOrCreateTag();
-        tag.putUUID(OWNER_KEY, owner);
-        tag.putString(OWNER_NAME_KEY, ownerName);
+        tag.putUUID(CARD_ID_KEY, cardId);
     }
 
-    public static UUID getOwner(ItemStack stack) {
+    public static UUID getCardId(ItemStack stack) {
         CompoundTag tag = stack.getTag();
-        if (tag != null && tag.hasUUID(OWNER_KEY)) {
-            return tag.getUUID(OWNER_KEY);
+        if (tag != null && tag.hasUUID(CARD_ID_KEY)) {
+            return tag.getUUID(CARD_ID_KEY);
         }
-        return null; // no owner yet
+        return null; // no card ID yet (blank card)
     }
 
-    public static String getOwnerName(ItemStack stack) {
+    public static boolean hasCardId(ItemStack stack) {
         CompoundTag tag = stack.getTag();
-        // Owner name is stored as a string, so check for a string tag instead of hasUUID
-        if (tag != null && tag.contains(OWNER_NAME_KEY)) {
-            return tag.getString(OWNER_NAME_KEY);
-        }
-        return null; // no owner yet
+        return tag != null && tag.hasUUID(CARD_ID_KEY);
     }
 
-    public static boolean hasOwner(ItemStack stack) {
-        CompoundTag tag = stack.getTag();
-        return tag != null && tag.hasUUID(OWNER_KEY);
+    public static boolean isBlankCard(ItemStack stack) {
+        return !hasCardId(stack) && !isCancelled(stack);
     }
 
     // --- PIN handling ---
-    public static void setPin(ItemStack stack, int pin) {
-        if (pin < 0 || pin > 9999) {
-            throw new IllegalArgumentException("PIN must be a 4-digit integer (0000–9999)");
+    public static void setPin(ItemStack stack, String pin) {
+        if (pin == null || pin.length() != 4 || !pin.matches("\\d{4}")) {
+            throw new IllegalArgumentException("PIN must be a 4-digit string (0000-9999)");
         }
         CompoundTag tag = stack.getOrCreateTag();
-        tag.putInt(PIN_KEY, pin);
+        tag.putString(PIN_KEY, pin);
     }
 
-    public static int getPin(ItemStack stack) {
+    public static String getPin(ItemStack stack) {
         CompoundTag tag = stack.getTag();
         if (tag != null && tag.contains(PIN_KEY)) {
-            return tag.getInt(PIN_KEY);
+            return tag.getString(PIN_KEY);
         }
-        return -1; // indicates no PIN set
+        return null; // indicates no PIN set
     }
 
     public static boolean hasPin(ItemStack stack) {
         CompoundTag tag = stack.getTag();
         return tag != null && tag.contains(PIN_KEY);
+    }
+
+    // --- Cancelled state handling ---
+    public static void setCancelled(ItemStack stack, boolean cancelled) {
+        CompoundTag tag = stack.getOrCreateTag();
+        tag.putBoolean(CANCELLED_KEY, cancelled);
+    }
+
+    public static boolean isCancelled(ItemStack stack) {
+        CompoundTag tag = stack.getTag();
+        return tag != null && tag.getBoolean(CANCELLED_KEY);
+    }
+
+    // --- Combined validation ---
+    public static boolean isValidCard(ItemStack stack) {
+        return hasCardId(stack) && hasPin(stack) && !isCancelled(stack);
     }    
 
-        // --- Tooltip ---
+    // --- Tooltip ---
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
-        String owner = getOwnerName(stack);
-        if (owner != null) {
-            tooltip.add(Component.translatable("text.currencycraft.debit_card.owner", owner));
+        if (isCancelled(stack)) {
+            tooltip.add(Component.translatable("text.currencycraft.debit_card.cancelled"));
+        } else if (isBlankCard(stack)) {
+            tooltip.add(Component.translatable("text.currencycraft.debit_card.blank"));
+        } else if (hasCardId(stack)) {
+            tooltip.add(Component.translatable("text.currencycraft.debit_card.active"));
         }
     }
 }
