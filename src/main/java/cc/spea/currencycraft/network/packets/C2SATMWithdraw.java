@@ -1,5 +1,6 @@
 package cc.spea.currencycraft.network.packets;
 
+import cc.spea.currencycraft.Config;
 import cc.spea.currencycraft.bank.BankAccountData;
 import cc.spea.currencycraft.bank.BankAccountManager;
 import cc.spea.currencycraft.bank.BankConfig;
@@ -110,9 +111,9 @@ public class C2SATMWithdraw {
             player.displayClientMessage(Component.translatable("text.currencycraft.atm.withdrawal_success",
                 String.format("%.2f", amount / 100.0)), true);
 
-            if (BankConfig.WITHDRAWAL_FEE > 0) {
+            if (Config.withdrawalFee > 0) {
                 player.displayClientMessage(Component.translatable("text.currencycraft.atm.withdrawal_fee",
-                    String.format("%.2f", BankConfig.WITHDRAWAL_FEE / 100.0)), true);
+                    String.format("%.2f", Config.withdrawalFee / 100.0)), true);
             }
 
             // Refresh menu if open
