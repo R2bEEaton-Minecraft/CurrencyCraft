@@ -10,6 +10,8 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.network.NetworkEvent;
@@ -44,6 +46,8 @@ public class C2SATMWithdraw {
             // Validate withdrawal amount
             if (!BankConfig.isValidWithdrawalAmount(amount)) {
                 player.displayClientMessage(Component.translatable("text.currencycraft.atm.invalid_withdrawal"), true);
+                player.level().playSound(null, player.blockPosition(), SoundEvents.VILLAGER_NO,
+                    SoundSource.PLAYERS, 0.5F, 1.0F);
                 return;
             }
 
@@ -78,12 +82,16 @@ public class C2SATMWithdraw {
             // Check if player has sufficient balance
             if (account.getBalance() < totalCost) {
                 player.displayClientMessage(Component.translatable("text.currencycraft.atm.insufficient_funds"), true);
+                player.level().playSound(null, player.blockPosition(), SoundEvents.VILLAGER_NO,
+                    SoundSource.PLAYERS, 0.5F, 1.0F);
                 return;
             }
 
             // Withdraw from account
             if (!account.withdraw(totalCost)) {
                 player.displayClientMessage(Component.translatable("text.currencycraft.atm.withdrawal_failed"), true);
+                player.level().playSound(null, player.blockPosition(), SoundEvents.VILLAGER_NO,
+                    SoundSource.PLAYERS, 0.5F, 1.0F);
                 return;
             }
 
@@ -106,6 +114,10 @@ public class C2SATMWithdraw {
             }
 
             manager.markDirty();
+
+            // Play withdrawal success sound - cash dispensing
+            player.level().playSound(null, player.blockPosition(), SoundEvents.DISPENSER_DISPENSE,
+                SoundSource.PLAYERS, 0.8F, 1.0F);
 
             // Send success message
             player.displayClientMessage(Component.translatable("text.currencycraft.atm.withdrawal_success",

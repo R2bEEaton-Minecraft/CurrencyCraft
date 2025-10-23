@@ -6,6 +6,8 @@ import cc.spea.currencycraft.items.DebitCardItem;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.network.NetworkEvent;
 
@@ -60,6 +62,10 @@ public class C2SDisableDebitCard {
                     }
                 }
             }
+
+            // Play card disabled sound
+            player.level().playSound(null, player.blockPosition(), SoundEvents.FIRE_EXTINGUISH,
+                SoundSource.PLAYERS, 0.5F, 1.5F);
 
             player.displayClientMessage(Component.translatable("text.currencycraft.atm.card_disabled"), true);
             player.closeContainer();

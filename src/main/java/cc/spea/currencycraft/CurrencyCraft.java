@@ -25,6 +25,7 @@ import cc.spea.currencycraft.gui.ATM.ATMPinEntryScreen;
 import cc.spea.currencycraft.gui.ATM.ATMMainMenu;
 import cc.spea.currencycraft.gui.ATM.ATMMainScreen;
 import cc.spea.currencycraft.items.DebitCardItem;
+import cc.spea.currencycraft.sounds.ModSounds;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.core.BlockPos;
@@ -233,6 +234,9 @@ public class CurrencyCraft
         BLOCK_ENTITY_TYPES.register(modEventBus);
 
         MENUS.register(modEventBus);
+
+        // Register custom sounds
+        ModSounds.register(modEventBus);
 
         CurrencyCraftVillagers.register(modEventBus);
 

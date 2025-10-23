@@ -8,6 +8,8 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.MenuProvider;
@@ -37,13 +39,17 @@ public class WalletItem extends Item implements DyeableLeatherItem {
 
         // We only want to open the GUI on the server side
         if (!level.isClientSide() && player instanceof ServerPlayer serverPlayer) {
-            
+
+            // Play wallet opening sound - leather rustling
+            level.playSound(null, player.blockPosition(), SoundEvents.ARMOR_EQUIP_LEATHER,
+                SoundSource.PLAYERS, 0.8F, 1.0F);
+
             // Create a MenuProvider
             MenuProvider menuProvider = new MenuProvider() {
                 @Override
                 public @NotNull Component getDisplayName() {
                     // This is the title of the GUI
-                    return walletStack.getHoverName(); 
+                    return walletStack.getHoverName();
                 }
 
                 @Nullable

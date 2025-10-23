@@ -72,5 +72,14 @@
     "text.currencycraft.atm.withdrawal_fee": "Fee: $%s",
     "text.currencycraft.atm.card_cancelled": "This card has been cancelled",
     "text.currencycraft.atm.no_card_to_disable": "You don't have an active card to disable",
-    "text.currencycraft.vending_machine.out_of_order": "OUT OF ORDER - Money storage full"
+    "text.currencycraft.vending_machine.out_of_order": "OUT OF ORDER - Money storage full",
+    "subtitles.currencycraft.cash_register.open": "Cash register opens",
+    "subtitles.currencycraft.cash_register.close": "Cash register closes",
+    "subtitles.currencycraft.cash_register.coin": "Coin inserted",
+    "subtitles.currencycraft.cash_register.note": "Note inserted",
+    "subtitles.currencycraft.vending_machine.insert_coin": "Coin inserted",
+    "subtitles.currencycraft.vending_machine.insert_note": "Note inserted",
+    "subtitles.currencycraft.vending_machine.dispense": "Item dispensed",
+    "subtitles.currencycraft.vending_machine.reject": "Machine rejects",
+    "subtitles.currencycraft.vending_machine.change": "Change dispensed"
 }

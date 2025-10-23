@@ -6,6 +6,8 @@ import cc.spea.currencycraft.items.DebitCardItem;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.network.NetworkEvent;
 
@@ -76,6 +78,10 @@ public class C2SSetupDebitCard {
 
             account.setActiveCard(cardId, pin);
             manager.markDirty();
+
+            // Play card setup success sound
+            player.level().playSound(null, player.blockPosition(), SoundEvents.VILLAGER_YES,
+                SoundSource.PLAYERS, 0.7F, 1.0F);
 
             player.displayClientMessage(Component.translatable("text.currencycraft.atm.card_setup_success"), true);
             player.closeContainer();

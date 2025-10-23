@@ -1,7 +1,10 @@
 package cc.spea.currencycraft.gui.CashRegister;
 
 import cc.spea.currencycraft.CurrencyCraft;
+import cc.spea.currencycraft.sounds.ModSounds;
+import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -15,12 +18,19 @@ import net.minecraftforge.registries.RegistryObject;
 public class CashRegisterMenu extends AbstractContainerMenu {
     private final Container container;
     private final ContainerData data;
+    private final BlockPos pos;
 
     public CashRegisterMenu(int windowId, Inventory playerInv, Container container, ContainerData data) {
         super(CurrencyCraft.CASH_REGISTER_MENU.get(), windowId);
         this.container = container;
         checkContainerSize(container, 30);
         this.data = data;
+        // Store the block position if the container is a BlockEntity
+        if (container instanceof cc.spea.currencycraft.blocks.CashRegister.CashRegisterBlockEntity be) {
+            this.pos = be.getBlockPos();
+        } else {
+            this.pos = BlockPos.ZERO;
+        }
 
         int slotIndex = 0;
         final int X_START = 8;
@@ -61,7 +71,29 @@ public class CashRegisterMenu extends AbstractContainerMenu {
         // Query the central layout for all necessary info
         RegistryObject<Item> validItem = CashRegisterLayout.getValidItemForSlot(index);
         ResourceLocation placeholder = CashRegisterLayout.getPlaceholderTextureForSlot(index);
-        this.addSlot(new PlaceholderSlot(container, index, x, y, placeholder, validItem));
+
+        // Create a custom slot that plays sounds when items are added
+        PlaceholderSlot slot = new PlaceholderSlot(container, index, x, y, placeholder, validItem) {
+            @Override
+            public void setChanged() {
+                super.setChanged();
+                // Play sound when item is placed
+                if (this.hasItem() && container instanceof cc.spea.currencycraft.blocks.CashRegister.CashRegisterBlockEntity be) {
+                    if (!be.getLevel().isClientSide) {
+                        // Notes are in slots 0-13, coins are in slots 14-29
+                        if (this.getSlotIndex() < 14) {
+                            // Note sound
+                            be.getLevel().playSound(null, pos, ModSounds.CASH_REGISTER_NOTE.get(), SoundSource.BLOCKS, 0.5F, 1.0F);
+                        } else {
+                            // Coin sound
+                            be.getLevel().playSound(null, pos, ModSounds.CASH_REGISTER_COIN.get(), SoundSource.BLOCKS, 0.5F, 1.0F);
+                        }
+                    }
+                }
+            }
+        };
+
+        this.addSlot(slot);
     }
 
     public Container getContainer() {
@@ -104,5 +136,14 @@ public class CashRegisterMenu extends AbstractContainerMenu {
         int lower = this.data.get(1);
         // The '& 0xFFFFFFFFL' is crucial to prevent sign extension on the lower bits.
         return ((long) upper << 32) | (lower & 0xFFFFFFFFL);
-    }    
+    }
+
+    @Override
+    public void removed(Player player) {
+        super.removed(player);
+        // Play closing sound when menu is closed (custom sound)
+        if (!player.level().isClientSide) {
+            player.level().playSound(null, this.pos, ModSounds.CASH_REGISTER_CLOSE.get(), SoundSource.BLOCKS, 0.8F, 1.0F);
+        }
+    }
 }

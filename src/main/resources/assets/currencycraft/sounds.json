@@ -1,0 +1,56 @@
+{
+  "cash_register_open": {
+    "subtitle": "subtitles.currencycraft.cash_register.open",
+    "sounds": [
+      "currencycraft:cash_register/open"
+    ]
+  },
+  "cash_register_close": {
+    "subtitle": "subtitles.currencycraft.cash_register.close",
+    "sounds": [
+      "currencycraft:cash_register/close"
+    ]
+  },
+  "cash_register_coin": {
+    "subtitle": "subtitles.currencycraft.cash_register.coin",
+    "sounds": [
+      "currencycraft:cash_register/coin"
+    ]
+  },
+  "cash_register_note": {
+    "subtitle": "subtitles.currencycraft.cash_register.note",
+    "sounds": [
+      "currencycraft:cash_register/note"
+    ]
+  },
+  "vending_machine_insert_coin": {
+    "subtitle": "subtitles.currencycraft.vending_machine.insert_coin",
+    "sounds": [
+      "currencycraft:vending_machine/insert_coin"
+    ]
+  },
+  "vending_machine_insert_note": {
+    "subtitle": "subtitles.currencycraft.vending_machine.insert_note",
+    "sounds": [
+      "currencycraft:vending_machine/insert_note"
+    ]
+  },
+  "vending_machine_dispense": {
+    "subtitle": "subtitles.currencycraft.vending_machine.dispense",
+    "sounds": [
+      "currencycraft:vending_machine/dispense"
+    ]
+  },
+  "vending_machine_reject": {
+    "subtitle": "subtitles.currencycraft.vending_machine.reject",
+    "sounds": [
+      "currencycraft:vending_machine/reject"
+    ]
+  },
+  "vending_machine_change": {
+    "subtitle": "subtitles.currencycraft.vending_machine.change",
+    "sounds": [
+      "currencycraft:vending_machine/change"
+    ]
+  }
+}

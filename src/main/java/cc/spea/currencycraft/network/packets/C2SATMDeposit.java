@@ -8,6 +8,8 @@ import cc.spea.currencycraft.items.DebitCardItem;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.network.NetworkEvent;
 
@@ -102,6 +104,10 @@ public class C2SATMDeposit {
             // Add to account balance
             account.deposit(netDeposit);
             manager.markDirty();
+
+            // Play deposit success sound
+            player.level().playSound(null, player.blockPosition(), SoundEvents.ITEM_FRAME_ADD_ITEM,
+                SoundSource.PLAYERS, 0.7F, 1.2F);
 
             // Send success message
             player.displayClientMessage(Component.translatable("text.currencycraft.atm.deposit_success",

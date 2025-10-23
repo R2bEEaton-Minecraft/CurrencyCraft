@@ -5,6 +5,7 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 import cc.spea.currencycraft.blocks.HorizontalEntityBlockBase;
+import cc.spea.currencycraft.sounds.ModSounds;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
@@ -96,6 +97,8 @@ public class CashRegisterBlock extends HorizontalEntityBlockBase {
             MenuProvider menuProvider = (MenuProvider) cashRegister;
             if (player instanceof ServerPlayer serverPlayer) {
                 NetworkHooks.openScreen(serverPlayer, menuProvider, pos);
+                // Play cash register opening sound (custom sound)
+                world.playSound(null, pos, ModSounds.CASH_REGISTER_OPEN.get(), SoundSource.BLOCKS, 0.8F, 1.0F);
             }
         }
         return InteractionResult.SUCCESS;

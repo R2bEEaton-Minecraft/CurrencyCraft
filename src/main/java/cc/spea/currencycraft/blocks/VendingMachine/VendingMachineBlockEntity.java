@@ -6,6 +6,7 @@ import java.util.List;
 
 import cc.spea.currencycraft.CurrencyCraft;
 import cc.spea.currencycraft.helper.ModHelpers;
+import cc.spea.currencycraft.sounds.ModSounds;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
@@ -229,10 +230,25 @@ public class VendingMachineBlockEntity extends BaseContainerBlockEntity implemen
         if (currencyStack.isEmpty()) {
             return false;
         }
-        
-        this.insertedValueInCents += ModHelpers.calculateTotalCurrencyValueInCents(List.of(currencyStack));
+
+        long value = ModHelpers.calculateTotalCurrencyValueInCents(List.of(currencyStack));
+        this.insertedValueInCents += value;
         this.ejectTimer = EJECT_DELAY_TICKS;
         this.setChanged();
+
+        // Play different sounds for coins vs notes (custom sounds)
+        if (this.level != null && !this.level.isClientSide) {
+            // Notes are 500+ cents (5+ units), coins are less
+            if (value >= 500) {
+                // Note sound - bill acceptor
+                this.level.playSound(null, this.worldPosition, ModSounds.VENDING_MACHINE_INSERT_NOTE.get(),
+                    net.minecraft.sounds.SoundSource.BLOCKS, 0.7F, 1.0F);
+            } else {
+                // Coin sound - coin slot
+                this.level.playSound(null, this.worldPosition, ModSounds.VENDING_MACHINE_INSERT_COIN.get(),
+                    net.minecraft.sounds.SoundSource.BLOCKS, 0.7F, 1.0F);
+            }
+        }
 
         return true;
     }
@@ -243,6 +259,10 @@ public class VendingMachineBlockEntity extends BaseContainerBlockEntity implemen
             Direction facingDirection = blockState.getValue(HorizontalDirectionalBlock.FACING);
             BlockPos dropPosition = this.getBlockPos().relative(facingDirection);
             Containers.dropContents(this.level, dropPosition, ModHelpers.calculateItemStacksFromCents(this.insertedValueInCents));
+
+            // Play change ejection sound (custom sound)
+            this.level.playSound(null, this.worldPosition, ModSounds.VENDING_MACHINE_CHANGE.get(),
+                net.minecraft.sounds.SoundSource.BLOCKS, 0.7F, 1.0F);
         }
     }
 
@@ -418,14 +438,18 @@ public class VendingMachineBlockEntity extends BaseContainerBlockEntity implemen
 
         ItemStack copyStack = itemStack.copyWithCount(1);
         itemStack.setCount(itemStack.getCount() - 1);
-        
+
         if (this.level != null && !this.level.isClientSide) {
             Containers.dropContents(this.level, dropPosition, NonNullList.withSize(1, copyStack));
+
+            // Play purchase success sound - item dispensing (custom sound)
+            this.level.playSound(null, this.worldPosition, ModSounds.VENDING_MACHINE_DISPENSE.get(),
+                net.minecraft.sounds.SoundSource.BLOCKS, 0.8F, 1.0F);
         }
 
         this.ejectTimer = EJECT_DELAY_TICKS;
         this.setChanged();
-        
+
         return true;
     }
 
