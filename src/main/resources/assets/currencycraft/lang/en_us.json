@@ -25,6 +25,8 @@
     "container.currencycraft.vending_machine.locked": "Vending Machine is now locked!",
     "container.currencycraft.cash_register.locked": "Cash Register is now locked!",
     "tooltip.currencycraft.wallet.total": "Total: %s",
+    "tooltip.currencycraft.vending_machine.available": "Available: %s",
+    "tooltip.currencycraft.vending_machine.shift_buy": "Shift-Click: Buy %s",
     "entity.minecraft.villager.currencycraft.banker": "Banker",
     "gui.currencycraft.vending_machine.save": "Save",
     "gui.currencycraft.vending_machine.edit": "Click to Change",

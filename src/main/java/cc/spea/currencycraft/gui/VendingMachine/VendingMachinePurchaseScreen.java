@@ -52,12 +52,12 @@ public class VendingMachinePurchaseScreen extends AbstractContainerScreen<Vendin
                 final int slotIndex = row * 3 + col;
                 int x = buttonGridX + col * 18; // Spacing them out a bit
                 int y = buttonGridY + row * 18;
-                
+
                 long priceInCents = this.blockEntity.getPriceInCents(slotIndex);
 
-                Tooltip priceTooltip = generateTooltip(priceInCents);
+                Tooltip priceTooltip = generateTooltip(priceInCents, slotIndex);
 
-                Button priceButton = Button.builder(Component.empty(), button -> selectSlotForPurchase(slotIndex))
+                Button priceButton = Button.builder(Component.empty(), button -> selectSlotForPurchase(slotIndex, false))
                         .bounds(x + 1, y + 1, 16, 16)
                         .tooltip(priceTooltip)
                         .build();
@@ -67,13 +67,35 @@ public class VendingMachinePurchaseScreen extends AbstractContainerScreen<Vendin
         }
     }
 
-    private void selectSlotForPurchase(int slotIndex) {
+    private void selectSlotForPurchase(int slotIndex, boolean buyAll) {
         if (this.blockEntity.getPriceInCents(slotIndex) <= this.blockEntity.calculateTotalCurrencyValueInCents()) {
             // System.out.println("Purchase attempt for slot " + slotIndex);
-            ModMessages.sendToServer(new C2SPurchaseVendingMachineItem(this.blockEntity.getBlockPos(), slotIndex));
+            ModMessages.sendToServer(new C2SPurchaseVendingMachineItem(this.blockEntity.getBlockPos(), slotIndex, buyAll));
             return;
         }
         this.blockEntity.getLevel().playLocalSound(this.blockEntity.getBlockPos(), SoundEvents.IRON_DOOR_CLOSE, SoundSource.BLOCKS, 1.0F, 1.0F, true);
+    }
+
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        // Check if shift is held when clicking a button
+        boolean shiftHeld = hasShiftDown();
+
+        // Check if we're clicking on a price button
+        for (int i = 0; i < priceButtons.length; i++) {
+            if (priceButtons[i] != null && priceButtons[i].isMouseOver(mouseX, mouseY)) {
+                final int slotIndex = i;
+                if (shiftHeld) {
+                    selectSlotForPurchase(slotIndex, true);
+                    return true;
+                } else {
+                    selectSlotForPurchase(slotIndex, false);
+                    return true;
+                }
+            }
+        }
+
+        return super.mouseClicked(mouseX, mouseY, button);
     }
 
     @Override
@@ -141,8 +163,30 @@ public class VendingMachinePurchaseScreen extends AbstractContainerScreen<Vendin
         graphics.drawString(this.font, insertedMoneyComponent, centeredX, y, 4210752, false);
     }
 
-    private Tooltip generateTooltip(long priceInCents) {
+    private Tooltip generateTooltip(long priceInCents, int slotIndex) {
         double priceInUnits = priceInCents / 100.0f;
-        return Tooltip.create(Component.literal(String.format("%.2f", priceInUnits)));
+        Component priceText = Component.literal(String.format("%.2f", priceInUnits));
+
+        // Calculate how many can be purchased
+        long insertedValue = this.blockEntity.calculateTotalCurrencyValueInCents();
+        ItemStack itemStack = this.blockEntity.getItem(slotIndex);
+        int available = itemStack.getCount();
+
+        if (priceInCents > 0 && available > 0) {
+            int canAfford = (int) (insertedValue / priceInCents);
+            int maxPurchasable = Math.min(canAfford, available);
+
+            if (maxPurchasable > 1) {
+                Component tooltipText = Component.empty()
+                    .append(priceText)
+                    .append("\n")
+                    .append(Component.translatable("tooltip.currencycraft.vending_machine.available", available).withStyle(ChatFormatting.GRAY))
+                    .append("\n")
+                    .append(Component.translatable("tooltip.currencycraft.vending_machine.shift_buy", maxPurchasable).withStyle(ChatFormatting.YELLOW));
+                return Tooltip.create(tooltipText);
+            }
+        }
+
+        return Tooltip.create(priceText);
     }
 }

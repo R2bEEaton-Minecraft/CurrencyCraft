@@ -444,7 +444,7 @@ public class VendingMachineBlockEntity extends BaseContainerBlockEntity implemen
 
             // Play purchase success sound - item dispensing (custom sound)
             this.level.playSound(null, this.worldPosition, ModSounds.VENDING_MACHINE_DISPENSE.get(),
-                net.minecraft.sounds.SoundSource.BLOCKS, 0.8F, 1.0F);
+                net.minecraft.sounds.SoundSource.BLOCKS, 0.5F, 1.0F);
         }
 
         this.ejectTimer = EJECT_DELAY_TICKS;
