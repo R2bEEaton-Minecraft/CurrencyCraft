@@ -32,6 +32,7 @@ public class VendingMachineBlockEntity extends BaseContainerBlockEntity implemen
     private long insertedValueInCents = 0L;
     private int ejectTimer = 0;
     private static final int EJECT_DELAY_TICKS = 600;
+    private boolean outOfOrder = false;
 
     private final int productSlots = 12;
     private static final int totalSlots = 37;
@@ -132,7 +133,11 @@ public class VendingMachineBlockEntity extends BaseContainerBlockEntity implemen
         if (tag.contains("EjectTimer")) {
             this.ejectTimer = tag.getInt("EjectTimer");
         }
-        
+
+        if (tag.contains("OutOfOrder")) {
+            this.outOfOrder = tag.getBoolean("OutOfOrder");
+        }
+
         // --- NEW ---: Load product prices
         if (tag.contains("ProductPrices", 12)) { // 12 = LongArrayTag ID
             long[] loadedPrices = tag.getLongArray("ProductPrices");
@@ -150,6 +155,7 @@ public class VendingMachineBlockEntity extends BaseContainerBlockEntity implemen
 
         tag.putLong("InsertedValueInCents", this.insertedValueInCents);
         tag.putInt("EjectTimer", this.ejectTimer);
+        tag.putBoolean("OutOfOrder", this.outOfOrder);
 
         // --- NEW ---: Save product prices
         tag.putLongArray("ProductPrices", this.productPrices);
@@ -256,6 +262,78 @@ public class VendingMachineBlockEntity extends BaseContainerBlockEntity implemen
         return this.insertedValueInCents;
     }
 
+    public boolean isOutOfOrder() {
+        return this.outOfOrder;
+    }
+
+    public void setOutOfOrder(boolean outOfOrder) {
+        this.outOfOrder = outOfOrder;
+        this.setChanged();
+    }
+
+    public void clearOutOfOrder() {
+        if (this.outOfOrder) {
+            this.outOfOrder = false;
+            this.setChanged();
+        }
+    }
+
+    /**
+     * Checks if the given currency stacks can fit in the money inventory.
+     * Returns true if all items can be added, false if any would be dropped.
+     */
+    private boolean canFitCurrency(NonNullList<ItemStack> currencyStacks) {
+        // Create a copy of the money inventory to simulate insertion
+        NonNullList<ItemStack> tempInventory = NonNullList.create();
+        for (int i = 12; i < this.items.size(); i++) {
+            tempInventory.add(this.items.get(i).copy());
+        }
+
+        // Try to insert each currency stack into the temporary inventory
+        for (ItemStack stackToAdd : currencyStacks) {
+            if (stackToAdd.isEmpty()) {
+                continue;
+            }
+
+            ItemStack stackToInsert = stackToAdd.copy();
+
+            // PASS 1: Try to merge with existing stacks
+            for (int i = 0; i < tempInventory.size(); i++) {
+                ItemStack slotStack = tempInventory.get(i);
+                if (!slotStack.isEmpty() && ItemStack.isSameItemSameTags(slotStack, stackToInsert)) {
+                    int transferAmount = Math.min(stackToInsert.getCount(), slotStack.getMaxStackSize() - slotStack.getCount());
+
+                    if (transferAmount > 0) {
+                        slotStack.grow(transferAmount);
+                        stackToInsert.shrink(transferAmount);
+                    }
+                }
+
+                if (stackToInsert.isEmpty()) {
+                    break;
+                }
+            }
+
+            // PASS 2: Try to place in empty slots
+            if (!stackToInsert.isEmpty()) {
+                for (int i = 0; i < tempInventory.size(); i++) {
+                    if (tempInventory.get(i).isEmpty()) {
+                        tempInventory.set(i, stackToInsert);
+                        stackToInsert = ItemStack.EMPTY;
+                        break;
+                    }
+                }
+            }
+
+            // If there's still items remaining, the inventory can't fit everything
+            if (!stackToInsert.isEmpty()) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     public boolean purchaseItem(int slotIndex) {
         // System.out.println("Attempt purchase! " + slotIndex);
 
@@ -269,13 +347,19 @@ public class VendingMachineBlockEntity extends BaseContainerBlockEntity implemen
             return false;
         }
 
+        // Check if the payment currency can fit in the money inventory
+        NonNullList<ItemStack> salesStacks = ModHelpers.calculateItemStacksFromCents(productPrices[slotIndex]);
+        if (!canFitCurrency(salesStacks)) {
+            // Money inventory is full - cannot complete purchase
+            this.setOutOfOrder(true);
+            return false;
+        }
+
         this.insertedValueInCents -= productPrices[slotIndex];
 
         BlockState blockState = this.getBlockState();
         Direction facingDirection = blockState.getValue(HorizontalDirectionalBlock.FACING);
         BlockPos dropPosition = this.getBlockPos().relative(facingDirection);
-
-        NonNullList<ItemStack> salesStacks = ModHelpers.calculateItemStacksFromCents(productPrices[slotIndex]);
 
         // List to keep track of any items that could not be fully inserted
         NonNullList<ItemStack> remainingItems = NonNullList.create();

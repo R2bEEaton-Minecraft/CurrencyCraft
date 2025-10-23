@@ -71,5 +71,6 @@
     "text.currencycraft.atm.withdrawal_success": "Withdrew $%s",
     "text.currencycraft.atm.withdrawal_fee": "Fee: $%s",
     "text.currencycraft.atm.card_cancelled": "This card has been cancelled",
-    "text.currencycraft.atm.no_card_to_disable": "You don't have an active card to disable"
+    "text.currencycraft.atm.no_card_to_disable": "You don't have an active card to disable",
+    "text.currencycraft.vending_machine.out_of_order": "OUT OF ORDER - Money storage full"
 }

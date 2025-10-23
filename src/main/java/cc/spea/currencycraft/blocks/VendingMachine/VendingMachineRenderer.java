@@ -8,6 +8,7 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 
 public class VendingMachineRenderer implements BlockEntityRenderer<VendingMachineBlockEntity> {
 
@@ -75,6 +76,49 @@ public class VendingMachineRenderer implements BlockEntityRenderer<VendingMachin
 
             // Render the item
             itemRenderer.renderStatic(stack, ItemDisplayContext.FIXED,
+                    combinedLight, combinedOverlay, poseStack, buffer, be.getLevel(), 0);
+
+            poseStack.popPose();
+        }
+
+        // Render "OUT OF ORDER" indicator if the machine is out of order
+        if (be.isOutOfOrder()) {
+            poseStack.pushPose();
+
+            // Position the indicator in the center-top of the machine
+            float x = 0.0625f;
+            float y = 1.6875f; // Near the top
+            float z = 1.0f;
+
+            if (facing != null) {
+                switch (facing) {
+                    case NORTH -> poseStack.translate(x, y, 1.0f - z);
+                    case SOUTH -> poseStack.translate(1.0f - x, y, z);
+                    case EAST  -> poseStack.translate(z, y, x);
+                    case WEST  -> poseStack.translate(1.0f - z, y, 1.0f - x);
+                    default    -> poseStack.translate(x, y, z);
+                }
+            } else {
+                poseStack.translate(x, y, z);
+            }
+
+            // Orient to face outward
+            if (facing != null) {
+                switch (facing) {
+                    case SOUTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(180));
+                    case NORTH -> { }
+                    case EAST  -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(-90));
+                    case WEST  -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(90));
+                    default    -> { }
+                }
+            }
+
+            // Scale the barrier block
+            poseStack.scale(0.125f, 0.125f, 0.125f);
+
+            // Render a barrier block as the "out of order" indicator
+            ItemStack barrierStack = new ItemStack(Items.BARRIER);
+            itemRenderer.renderStatic(barrierStack, ItemDisplayContext.FIXED,
                     combinedLight, combinedOverlay, poseStack, buffer, be.getLevel(), 0);
 
             poseStack.popPose();

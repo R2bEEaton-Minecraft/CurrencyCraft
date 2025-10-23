@@ -5,7 +5,10 @@ import java.util.function.Supplier;
 import cc.spea.currencycraft.blocks.VendingMachine.VendingMachineBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraftforge.network.NetworkEvent;
 
 public class C2SPurchaseVendingMachineItem {
@@ -38,7 +41,23 @@ public class C2SPurchaseVendingMachineItem {
 
             if (player.level().isLoaded(pos)) {
                 if (player.level().getBlockEntity(pos) instanceof VendingMachineBlockEntity be) {
-                    be.purchaseItem(this.slotIndex);
+                    boolean success = be.purchaseItem(this.slotIndex);
+
+                    // If purchase failed, send out of order message and play error sound
+                    if (!success) {
+                        player.displayClientMessage(
+                            Component.translatable("text.currencycraft.vending_machine.out_of_order"),
+                            true
+                        );
+                        player.level().playSound(
+                            null,
+                            pos,
+                            SoundEvents.ANVIL_LAND,
+                            SoundSource.BLOCKS,
+                            0.5F,
+                            0.8F
+                        );
+                    }
                 }
             }
         });

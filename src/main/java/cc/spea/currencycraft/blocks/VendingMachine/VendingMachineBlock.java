@@ -135,6 +135,8 @@ public class VendingMachineBlock extends HorizontalEntityBlockBase {
 
             MenuProvider menuProvider;
             if (vendingMachine.getLock().unlocksWith(player.getMainHandItem())) {
+                // Owner is opening the restock menu - clear the out of order flag
+                vendingMachine.clearOutOfOrder();
                 menuProvider = new VendingMachineMenuProvider(vendingMachine, true);
             } else {
                 menuProvider = new VendingMachineMenuProvider(vendingMachine, false);
