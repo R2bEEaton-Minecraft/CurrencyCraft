@@ -29,6 +29,8 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraftforge.network.NetworkHooks;
 
 public class ATMBlock extends HorizontalBlockBase {
@@ -177,5 +179,14 @@ public class ATMBlock extends HorizontalBlockBase {
             world.destroyBlock(otherPos, !player.isCreative());
         }
         super.playerWillDestroy(world, pos, state, player);
+    }
+
+    @Override
+    public java.util.List<ItemStack> getDrops(BlockState state, LootParams.Builder params) {
+        // Only the lower half should drop the item to avoid double drops.
+        if (state.getValue(HALF) == DoubleBlockHalf.UPPER) {
+            return java.util.Collections.emptyList();
+        }
+        return super.getDrops(state, params);
     }
 }

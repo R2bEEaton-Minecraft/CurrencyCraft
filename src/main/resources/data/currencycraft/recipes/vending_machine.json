@@ -1,0 +1,25 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "pattern": [
+        "XYZ",
+        "XAZ",
+        "XYZ"
+    ],
+    "key": {
+        "X": {
+            "item": "minecraft:black_concrete"
+        },
+        "Y": {
+            "item": "minecraft:comparator"
+        },
+        "Z": {
+            "item": "minecraft:glass"
+        },
+        "A": {
+            "item": "currencycraft:cash_register"
+        }
+    },
+    "result": {
+        "item": "currencycraft:vending_machine"
+    }
+}
