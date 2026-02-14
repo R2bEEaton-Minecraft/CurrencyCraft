@@ -275,6 +275,11 @@ public class VendingMachineBlock extends HorizontalEntityBlockBase {
 
     @Override
     public List<ItemStack> getDrops(BlockState state, LootParams.Builder params) {
+        // This is a double block; only the lower half should ever produce an item drop.
+        if (state.getValue(HALF) == DoubleBlockHalf.UPPER) {
+            return java.util.Collections.emptyList();
+        }
+
         if (params.getOptionalParameter(LootContextParams.THIS_ENTITY) instanceof Player) {
             return java.util.Collections.emptyList();
         }
