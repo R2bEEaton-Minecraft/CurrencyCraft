@@ -204,3 +204,12 @@ publishing {
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
 }
+
+// Keep generated data (recipes/tags/etc.) current before local runs and builds.
+tasks.matching { it.name == 'runClient' }.configureEach {
+    dependsOn 'runData'
+}
+
+tasks.named('build').configure {
+    dependsOn 'runData'
+}
