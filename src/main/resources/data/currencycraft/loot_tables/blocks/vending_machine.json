@@ -3,18 +3,54 @@
   "pools": [
     {
       "bonus_rolls": 0.0,
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        }
+      ],
       "entries": [
         {
           "type": "minecraft:item",
           "functions": [
             {
-              "function": "minecraft:copy_components",
-              "include": [
-                "minecraft:custom_name",
-                "minecraft:container",
-                "minecraft:lock"
-              ],
+              "function": "minecraft:copy_name",
               "source": "block_entity"
+            },
+            {
+              "function": "minecraft:copy_nbt",
+              "source": "block_entity",
+              "ops": [
+                {
+                  "source": "Lock",
+                  "target": "BlockEntityTag.Lock",
+                  "op": "replace"
+                },
+                {
+                  "source": "Items",
+                  "target": "BlockEntityTag.Items",
+                  "op": "replace"
+                },
+                {
+                  "source": "InsertedValueInCents",
+                  "target": "BlockEntityTag.InsertedValueInCents",
+                  "op": "replace"
+                },
+                {
+                  "source": "EjectTimer",
+                  "target": "BlockEntityTag.EjectTimer",
+                  "op": "replace"
+                },
+                {
+                  "source": "OutOfOrder",
+                  "target": "BlockEntityTag.OutOfOrder",
+                  "op": "replace"
+                },
+                {
+                  "source": "ProductPrices",
+                  "target": "BlockEntityTag.ProductPrices",
+                  "op": "replace"
+                }
+              ]
             }
           ],
           "name": "currencycraft:vending_machine"
