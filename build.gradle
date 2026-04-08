@@ -5,16 +5,93 @@ plugins {
     id 'net.minecraftforge.gradle' version '[6.0,6.2)'
 }
 
+def supportedTargets = [
+    '1.20.1': [
+        minecraft_version      : '1.20.1',
+        minecraft_version_range: '[1.20.1,1.20.2)',
+        forge_version          : '47.4.16',
+        forge_version_range    : '[47,)',
+        loader_version_range   : '[47,)',
+        mapping_version        : '1.20.1',
+        java_version           : 17
+    ],
+    '1.20.2': [
+        minecraft_version      : '1.20.2',
+        minecraft_version_range: '[1.20.2,1.20.4)',
+        forge_version          : '48.1.0',
+        forge_version_range    : '[48,)',
+        loader_version_range   : '[48,)',
+        mapping_version        : '1.20.2',
+        java_version           : 17
+    ],
+    '1.20.4': [
+        minecraft_version      : '1.20.4',
+        minecraft_version_range: '[1.20.4,1.20.6)',
+        forge_version          : '49.2.4',
+        forge_version_range    : '[49,)',
+        loader_version_range   : '[49,)',
+        mapping_version        : '1.20.4',
+        java_version           : 17
+    ],
+    '1.20.6': [
+        minecraft_version      : '1.20.6',
+        minecraft_version_range: '[1.20.6,1.21.11)',
+        forge_version          : '50.2.4',
+        forge_version_range    : '[50,)',
+        loader_version_range   : '[50,)',
+        mapping_version        : '1.20.6',
+        java_version           : 21
+    ],
+    '1.21.1': [
+        minecraft_version      : '1.21.1',
+        minecraft_version_range: '[1.21.1,1.21.11)',
+        forge_version          : '52.1.10',
+        forge_version_range    : '[52,)',
+        loader_version_range   : '[52,)',
+        mapping_version        : '1.21.1',
+        java_version           : 21
+    ],
+    '1.21.10': [
+        minecraft_version      : '1.21.10',
+        minecraft_version_range: '[1.21.10,1.21.12)',
+        forge_version          : '60.1.8',
+        forge_version_range    : '[60,)',
+        loader_version_range   : '[60,)',
+        mapping_version        : '1.21.10',
+        java_version           : 21
+    ],
+]
+
+def defaultTarget = '1.20.1'
+def mcTarget = (findProperty('mcTarget') ?: defaultTarget).toString()
+if (!supportedTargets.containsKey(mcTarget)) {
+    throw new GradleException("Unsupported mcTarget '${mcTarget}'. Use one of: ${supportedTargets.keySet().join(', ')}")
+}
+
+def target = supportedTargets[mcTarget]
+def cliProps = gradle.startParameter.projectProperties
+def propOrDefault = { String key, Object fallback ->
+    return (cliProps.containsKey(key) ? cliProps[key] : fallback).toString()
+}
+
+def minecraft_version = propOrDefault('minecraft_version', target.minecraft_version)
+def minecraft_version_range = propOrDefault('minecraft_version_range', target.minecraft_version_range)
+def forge_version = propOrDefault('forge_version', target.forge_version)
+def forge_version_range = propOrDefault('forge_version_range', target.forge_version_range)
+def loader_version_range = propOrDefault('loader_version_range', target.loader_version_range)
+def mapping_version = propOrDefault('mapping_version', target.mapping_version)
+def java_version = Integer.parseInt(propOrDefault('java_version', target.java_version))
+
 version = mod_version
 group = mod_group_id
 
 base {
-    archivesName = mod_id
+    archivesName = "${mod_id}-mc${minecraft_version}"
 }
 
-// Mojang ships Java 17 to end users in 1.18+, so your mod should target Java 17.
-java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+java.toolchain.languageVersion = JavaLanguageVersion.of(java_version)
 
+println "Target: MC ${minecraft_version} / Forge ${forge_version} / Java ${java_version} / Profile ${mcTarget}"
 println "Java: ${System.getProperty 'java.version'}, JVM: ${System.getProperty 'java.vm.version'} (${System.getProperty 'java.vendor'}), Arch: ${System.getProperty 'os.arch'}"
 minecraft {
     // The mappings can be changed at any time and must be in the following format.
@@ -166,6 +243,7 @@ tasks.named('processResources', ProcessResources).configure {
 
 // Example for how to get properties into the manifest for reading at runtime.
 tasks.named('jar', Jar).configure {
+    destinationDirectory = layout.buildDirectory.dir("libs/${minecraft_version}")
     manifest {
         attributes([
                 'Specification-Title'     : mod_id,
@@ -205,11 +283,50 @@ tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
 }
 
+def skipDataGen = ((findProperty('skipDataGen') ?: 'false').toString().toBoolean())
+
 // Keep generated data (recipes/tags/etc.) current before local runs and builds.
-tasks.matching { it.name == 'runClient' }.configureEach {
-    dependsOn 'runData'
+if (!skipDataGen) {
+    tasks.matching { it.name == 'runClient' }.configureEach {
+        dependsOn 'runData'
+    }
+
+    tasks.named('build').configure {
+        dependsOn 'runData'
+    }
 }
 
-tasks.named('build').configure {
-    dependsOn 'runData'
+def matrixTargets = ['1.20.1', '1.20.2', '1.20.4', '1.20.6', '1.21.1', '1.21.10']
+
+tasks.register('listSupportedMcTargets') {
+    group = 'help'
+    description = 'Lists supported mcTarget values and their toolchain requirements.'
+    doLast {
+        supportedTargets.each { key, cfg ->
+            println "${key}: MC ${cfg.minecraft_version}, Forge ${cfg.forge_version}, Java ${cfg.java_version}, MC range ${cfg.minecraft_version_range}"
+        }
+    }
+}
+
+def matrixTaskNames = []
+matrixTargets.each { targetId ->
+    def taskName = "buildMc${targetId.replace('.', '_')}"
+    matrixTaskNames.add(taskName)
+
+    tasks.register(taskName, GradleBuild) {
+        group = 'build'
+        description = "Builds CurrencyCraft for Minecraft ${targetId}"
+        dir = projectDir
+        tasks = ['build']
+        startParameter.projectProperties = new LinkedHashMap<>(gradle.startParameter.projectProperties + [
+            mcTarget   : targetId,
+            skipDataGen: 'true'
+        ])
+    }
+}
+
+tasks.register('buildCompatibilityMatrix') {
+    group = 'build'
+    description = 'Builds all configured compatibility targets (one artifact per target).'
+    dependsOn matrixTaskNames
 }
